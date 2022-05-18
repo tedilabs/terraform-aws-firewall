@@ -44,5 +44,8 @@
   description: "This issue or pull request is related to dns-firewall-domain-list module."
   name: ":floppy_disk: dns-firewall-domain-list"
 - color: "fbca04"
+  description: "This issue or pull request is related to dns-firewall-rule-group module."
+  name: ":floppy_disk: dns-firewall-rule-group"
+- color: "fbca04"
   description: "This issue or pull request is related to network-firewall module."
   name: ":floppy_disk: network-firewall"
