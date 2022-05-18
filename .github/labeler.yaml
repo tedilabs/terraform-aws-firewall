@@ -1,0 +1,5 @@
+# Modules
+":floppy_disk: dns-firewall-domain-list":
+- modules/dns-firewall-domain-list/**/*
+":floppy_disk: network-firewall":
+- modules/network-firewall/**/*
