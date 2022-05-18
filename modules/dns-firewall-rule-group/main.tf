@@ -16,12 +16,12 @@ locals {
 
 
 ###################################################
-# Domain List for DNS Firewall
+# Rule Group for DNS Firewall
 ###################################################
 
-resource "aws_route53_resolver_firewall_domain_list" "this" {
-  name    = var.name
-  domains = var.domains
+resource "aws_route53_resolver_firewall_rule_group" "this" {
+  name = var.name
+  # description = var.description
 
   tags = merge(
     {
@@ -31,3 +31,24 @@ resource "aws_route53_resolver_firewall_domain_list" "this" {
     var.tags,
   )
 }
+
+
+###################################################
+# Rules for DNS Firewall Rule Group
+###################################################
+
+# resource "aws_route53_resolver_firewall_rule" "this" {
+#   count = var.value != null ? 1 : 0
+#
+#   firewall_arn = aws_route53_resolver_firewall_rule_group.this.arn
+#
+#   logging_configuration {
+#     log_destination_config {
+#       log_destination = {
+#         deliveryStream = aws_kinesis_firehose_delivery_stream.example.name
+#       }
+#       log_destination_type = "KinesisDataFirehose"
+#       log_type             = "ALERT"
+#     }
+#   }
+# }
