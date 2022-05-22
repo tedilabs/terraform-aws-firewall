@@ -3,6 +3,7 @@
 This module creates following resources.
 
 - `aws_route53_resolver_firewall_rule_group`
+- `aws_route53_resolver_firewall_rule` (optional)
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
