@@ -37,17 +37,32 @@ resource "aws_route53_resolver_firewall_rule_group" "this" {
 # Rules for DNS Firewall Rule Group
 ###################################################
 
-# resource "aws_route53_resolver_firewall_rule" "this" {
-#   count = var.value != null ? 1 : 0
-#
-#   firewall_arn = aws_route53_resolver_firewall_rule_group.this.arn
-#
-#   logging_configuration {
-#     log_destination_config {
-#       log_destination = {
-#         deliveryStream = aws_kinesis_firehose_delivery_stream.example.name
-#       }
-#       log_destination_type = "KinesisDataFirehose"
-#       log_type             = "ALERT"
-#     }
-#   }
+resource "aws_route53_resolver_firewall_rule" "this" {
+  for_each = {
+    for rule in var.rules :
+    rule.priority => rule
+  }
+
+  firewall_rule_group_id = aws_route53_resolver_firewall_rule_group.this.id
+
+  priority = each.key
+  name     = each.value.name
+  # description             = try(each.value.description, null)
+  firewall_domain_list_id = each.value.domain_list
+
+  action = each.value.action
+  block_response = (each.value.action == "BLOCK"
+    ? each.value.action_parameters.response
+  : null)
+  block_override_domain = (each.value.action_parameters.response == "OVERRIDE"
+    ? each.value.action_parameters.override.value
+  : null)
+  block_override_dns_type = (each.value.action_parameters.response == "OVERRIDE"
+    ? each.value.action_parameters.override.type
+  : null)
+
+  block_override_ttl = (each.value.action_parameters.response == "OVERRIDE"
+    ? each.value.action_parameters.override.ttl
+  : null)
+
+}
