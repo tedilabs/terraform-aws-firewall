@@ -7,6 +7,14 @@ variable "domains" {
   description = "(Optional) A list of domains for the firewall domain list."
   type        = list(string)
   default     = []
+
+  validation {
+    condition = alltrue([
+      for domain in var.domains :
+      substr(domain, -1, 1) == "."
+    ])
+    error_message = "Each domain should have a dot at the end by following the definition of FQDN(Fully Qualified Domain Name)."
+  }
 }
 
 variable "tags" {

@@ -27,3 +27,28 @@ output "name" {
 #   description = "The description of the firewall rule group."
 #   value       = aws_route53_resolver_firewall_rule_group.this.description
 # }
+
+output "rules" {
+  description = "The rules of the firewall rule group."
+  value = {
+    for priority, rule in aws_route53_resolver_firewall_rule.this :
+    priority => {
+      name = rule.name
+      # description = rule.description
+      domain_list = rule.firewall_domain_list_id
+      action      = rule.action
+      action_parameters = try({
+        "BLOCK" = {
+          response = rule.block_response
+          override = (rule.block_response == "OVERRIDE"
+            ? {
+              type  = rule.block_override_dns_type
+              value = rule.block_override_domain
+              ttl   = rule.block_override_ttl
+            }
+          : null)
+        }
+      }[rule.action], {})
+    }
+  }
+}
