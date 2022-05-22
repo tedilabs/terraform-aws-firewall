@@ -15,7 +15,7 @@ output "owner_id" {
 
 output "fail_open_enabled" {
   description = "Whether the Route53 Resolver handles queries during failures."
-  value       = aws_route53_resolver_firewall_config.this.firewall_fail_open
+  value       = aws_route53_resolver_firewall_config.this.firewall_fail_open == "ENABLED"
 }
 
 output "rule_groups" {
@@ -27,7 +27,7 @@ output "rule_groups" {
       name     = rule_group.name
       priority = priority
 
-      mutation_protection_enabled = rule_group.mutation_protection
+      mutation_protection_enabled = rule_group.mutation_protection == "ENABLED"
     }
   }
 }
