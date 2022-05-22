@@ -3,7 +3,7 @@ locals {
     package = "terraform-aws-firewall"
     version = trimspace(file("${path.module}/../../VERSION"))
     module  = basename(path.module)
-    name    = var.name
+    name    = var.vpc_id
   }
   module_tags = var.module_tags_enabled ? {
     "module.terraform.io/package"   = local.metadata.package
@@ -16,12 +16,33 @@ locals {
 
 
 ###################################################
-# Rule Group for DNS Firewall
+# DNS Firewall
 ###################################################
 
-resource "aws_route53_resolver_firewall_rule_group" "this" {
-  name = var.name
-  # description = var.description
+resource "aws_route53_resolver_firewall_config" "this" {
+  resource_id = var.vpc_id
+
+  firewall_fail_open = var.fail_open_enabled ? "ENABLED" : "DISABLED"
+}
+
+
+###################################################
+# Rule Group Associations for DNS Firewall
+###################################################
+
+resource "aws_route53_resolver_firewall_rule_group_association" "this" {
+  for_each = {
+    for rule_group in var.rule_groups :
+    rule_group.priority => rule_group
+  }
+
+  vpc_id = var.vpc_id
+
+  name                   = each.value.id
+  priority               = each.key
+  firewall_rule_group_id = each.value.id
+
+  mutation_protection = try(each.value.mutation_protection_enabled, false) ? "ENABLED" : "DISABLED"
 
   tags = merge(
     {
@@ -31,23 +52,3 @@ resource "aws_route53_resolver_firewall_rule_group" "this" {
     var.tags,
   )
 }
-
-
-###################################################
-# Rules for DNS Firewall Rule Group
-###################################################
-
-# resource "aws_route53_resolver_firewall_rule" "this" {
-#   count = var.value != null ? 1 : 0
-#
-#   firewall_arn = aws_route53_resolver_firewall_rule_group.this.arn
-#
-#   logging_configuration {
-#     log_destination_config {
-#       log_destination = {
-#         deliveryStream = aws_kinesis_firehose_delivery_stream.example.name
-#       }
-#       log_destination_type = "KinesisDataFirehose"
-#       log_type             = "ALERT"
-#     }
-#   }
