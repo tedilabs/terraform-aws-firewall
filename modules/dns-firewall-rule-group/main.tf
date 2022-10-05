@@ -53,16 +53,20 @@ resource "aws_route53_resolver_firewall_rule" "this" {
   action = each.value.action
   block_response = (each.value.action == "BLOCK"
     ? each.value.action_parameters.response
-  : null)
-  block_override_domain = (each.value.action_parameters.response == "OVERRIDE"
+    : null
+  )
+  block_override_domain = (try(each.value.action_parameters.response, null) == "OVERRIDE"
     ? each.value.action_parameters.override.value
-  : null)
-  block_override_dns_type = (each.value.action_parameters.response == "OVERRIDE"
+    : null
+  )
+  block_override_dns_type = (try(each.value.action_parameters.response, null) == "OVERRIDE"
     ? each.value.action_parameters.override.type
-  : null)
+    : null
+  )
 
-  block_override_ttl = (each.value.action_parameters.response == "OVERRIDE"
+  block_override_ttl = (try(each.value.action_parameters.response, null) == "OVERRIDE"
     ? each.value.action_parameters.override.ttl
-  : null)
+    : null
+  )
 
 }
