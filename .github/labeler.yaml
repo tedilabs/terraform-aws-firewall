@@ -3,5 +3,7 @@
 - modules/dns-firewall-domain-list/**/*
 ":floppy_disk: dns-firewall-rule-group":
 - modules/dns-firewall-rule-group/**/*
+":floppy_disk: dns-firewall":
+- modules/dns-firewall/**/*
 ":floppy_disk: network-firewall":
 - modules/network-firewall/**/*
