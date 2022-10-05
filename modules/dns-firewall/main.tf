@@ -42,7 +42,7 @@ resource "aws_route53_resolver_firewall_rule_group_association" "this" {
   priority               = each.key
   firewall_rule_group_id = each.value.id
 
-  mutation_protection = try(each.value.mutation_protection_enabled, false) ? "ENABLED" : "DISABLED"
+  mutation_protection = each.value.mutation_protection_enabled ? "ENABLED" : "DISABLED"
 
   tags = merge(
     {
