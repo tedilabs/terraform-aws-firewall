@@ -63,10 +63,8 @@ resource "aws_route53_resolver_firewall_rule" "this" {
     ? each.value.action_parameters.override.type
     : null
   )
-
   block_override_ttl = (try(each.value.action_parameters.response, null) == "OVERRIDE"
     ? each.value.action_parameters.override.ttl
     : null
   )
-
 }
