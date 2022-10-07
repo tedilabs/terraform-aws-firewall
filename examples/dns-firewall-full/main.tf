@@ -74,7 +74,12 @@ module "firewall" {
   vpc_id            = data.aws_vpc.default.id
   fail_open_enabled = true
 
-  rule_groups = []
+  rule_groups = [
+    {
+      priority = 200
+      id       = module.rule_group.id
+    },
+  ]
 
   tags = {
     "project" = "terraform-aws-firewall-examples"
