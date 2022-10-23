@@ -6,17 +6,121 @@
 
 Terraform module which creates firewall related resources on AWS.
 
+- [dns-firewall](./modules/dns-firewall)
+- [dns-firewall-domain-list](./modules/dns-firewall-domain-list)
+- [dns-firewall-rule-group](./modules/dns-firewall-rule-group)
+- [fms-policy](./modules/fms-policy)
+- [network-firewall](./modules/network-firewall)
+
 
 ## Target AWS Services
 
 Terraform Modules from [this package](https://github.com/tedilabs/terraform-aws-firewall) were written to manage the following AWS Services with Terraform.
 
+- **AWS FMS (Firewall Manager)**
+  - Security Policy
 - **AWS Route53 DNS Firewall**
   - Firewall
   - Firewall Rule Group
   - Firewall Domain List
 - **AWS VPC Network Firewall**
   - Firewall
+
+
+## Usage
+
+### Route53 DNS Firewall
+
+```tf
+data "aws_vpc" "default" {
+  default = true
+}
+
+
+###################################################
+# DNS Firewall Domain List
+###################################################
+
+module "domain_list" {
+  source  = "tedilabs/firewall/aws//modules/dns-firewall-domain-list"
+  version = "~> 0.1.0"
+
+  name = "example"
+  domains = [
+    "example1.mycompany.com.",
+    "example2.mycompany.com.",
+    "example3.mycompany.com.",
+  ]
+
+  tags = {
+    "project" = "terraform-aws-firewall-examples"
+  }
+}
+
+
+###################################################
+# DNS Firewall Rule Group
+###################################################
+
+module "rule_group" {
+  source  = "tedilabs/firewall/aws//modules/dns-firewall-rule-group"
+  version = "~> 0.1.0"
+
+  name = "block-blacklist"
+  rules = [
+    {
+      priority    = 10
+      name        = "block-example"
+      domain_list = module.domain_list.id
+      action      = "BLOCK"
+      action_parameters = {
+        response = "OVERRIDE"
+        override = {
+          type  = "CNAME"
+          value = "404.mycompany.com."
+          ttl   = 60
+        }
+      }
+    },
+  ]
+
+  tags = {
+    "project" = "terraform-aws-firewall-examples"
+  }
+}
+
+
+###################################################
+# DNS Firewall
+###################################################
+
+module "firewall" {
+  source  = "tedilabs/firewall/aws//modules/dns-firewall"
+  version = "~> 0.1.0"
+
+  vpc_id            = data.aws_vpc.default.id
+  fail_open_enabled = true
+
+  rule_groups = [
+    {
+      priority = 200
+      id       = module.rule_group.id
+    },
+  ]
+
+  tags = {
+    "project" = "terraform-aws-firewall-examples"
+  }
+}
+
+```
+
+
+## Examples
+
+### Route53 DNS Firewall
+
+- [Route53 DNS Firewall Full Version](./examples/dns-firewall-full)
 
 
 ## Self Promotion
