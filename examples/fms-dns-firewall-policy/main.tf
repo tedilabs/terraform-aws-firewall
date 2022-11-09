@@ -97,7 +97,7 @@ module "rule_group_2" {
 
 
 ###################################################
-# DNS Firewall
+# FMS Policy for DNS Firewall
 ###################################################
 
 module "policy" {
@@ -131,7 +131,7 @@ module "policy" {
   }
   organization_filter = {
     type     = "WHITELIST"
-    accounts = ["911145092815"]
+    accounts = []
   }
 
   ## Attributes

@@ -9,7 +9,7 @@ Terraform module which creates firewall related resources on AWS.
 - [dns-firewall](./modules/dns-firewall)
 - [dns-firewall-domain-list](./modules/dns-firewall-domain-list)
 - [dns-firewall-rule-group](./modules/dns-firewall-rule-group)
-- [fms-policy](./modules/fms-policy)
+- [fms-dns-firewall-policy](./modules/fms-dns-firewall-policy)
 - [network-firewall](./modules/network-firewall)
 
 

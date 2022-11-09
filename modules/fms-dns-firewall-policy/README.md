@@ -1,4 +1,4 @@
-# fms-policy
+# fms-dns-firewall-policy
 
 This module creates following resources.
 
