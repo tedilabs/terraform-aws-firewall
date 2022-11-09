@@ -5,5 +5,7 @@
 - modules/dns-firewall-rule-group/**/*
 ":floppy_disk: dns-firewall":
 - modules/dns-firewall/**/*
+":floppy_disk: fms-dns-firewall-policy":
+- modules/fms-dns-firewall-policy/**/*
 ":floppy_disk: network-firewall":
 - modules/network-firewall/**/*
