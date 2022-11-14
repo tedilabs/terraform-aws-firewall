@@ -31,7 +31,7 @@ variable "pre_rule_groups" {
 
 variable "post_rule_groups" {
   description = <<EOF
-  (Optional) A list of rule groups to process first. Each item of `post_rule_groups` block as defined below.
+  (Optional) A list of rule groups to process last. Each item of `post_rule_groups` block as defined below.
     (Required) `priority` - The setting that determines the processing order of the rule group among the rule groups that you associate with the specified VPC. DNS Firewall filters VPC traffic starting from the rule group with the lowest numeric priority setting. Valid values for `priority` are between 9901 and 10000.
     (Required) `rule_group` - The ID of the firewall rule group.
   EOF
