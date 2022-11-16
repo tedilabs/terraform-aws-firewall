@@ -11,6 +11,7 @@ Terraform module which creates firewall related resources on AWS.
 - [dns-firewall-rule-group](./modules/dns-firewall-rule-group)
 - [fms-dns-firewall-policy](./modules/fms-dns-firewall-policy)
 - [network-firewall](./modules/network-firewall)
+- [waf-ip-set](./modules/waf-ip-set)
 
 
 ## Target AWS Services
@@ -18,13 +19,15 @@ Terraform module which creates firewall related resources on AWS.
 Terraform Modules from [this package](https://github.com/tedilabs/terraform-aws-firewall) were written to manage the following AWS Services with Terraform.
 
 - **AWS FMS (Firewall Manager)**
-  - Security Policy
+  - DNS Firewall Security Policy
 - **AWS Route53 DNS Firewall**
   - Firewall
   - Firewall Rule Group
   - Firewall Domain List
 - **AWS VPC Network Firewall**
   - Firewall
+- **AWS WAF (Web Application Firewall)**
+  - IP Set
 
 
 ## Usage
