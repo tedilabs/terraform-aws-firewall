@@ -54,3 +54,6 @@
 - color: "fbca04"
   description: "This issue or pull request is related to network-firewall module."
   name: ":floppy_disk: network-firewall"
+- color: "fbca04"
+  description: "This issue or pull request is related to waf-ip-set module."
+  name: ":floppy_disk: waf-ip-set"
