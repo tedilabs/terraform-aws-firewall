@@ -9,3 +9,5 @@
 - modules/fms-dns-firewall-policy/**/*
 ":floppy_disk: network-firewall":
 - modules/network-firewall/**/*
+":floppy_disk: waf-ip-set":
+- modules/waf-ip-set/**/*
