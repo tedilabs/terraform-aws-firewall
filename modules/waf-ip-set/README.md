@@ -53,7 +53,7 @@ This module creates following resources.
 | <a name="output_description"></a> [description](#output\_description) | The description of the IP set. |
 | <a name="output_id"></a> [id](#output\_id) | The ID of the IP set. |
 | <a name="output_ip_address_type"></a> [ip\_address\_type](#output\_ip\_address\_type) | The type of IP addresses used by the IP set. |
-| <a name="output_ip_addresses"></a> [ip\_addresses](#output\_ip\_addresses) | The list of domains from the firewall domain list. |
+| <a name="output_ip_addresses"></a> [ip\_addresses](#output\_ip\_addresses) | A list of strings that specify one or more IP addresses or blocks of IP addresses in Classless Inter-Domain Routing (CIDR) notation. |
 | <a name="output_is_global"></a> [is\_global](#output\_is\_global) | Whether this is for a global application(AWS CloudFront distribution) or for a regional application. |
 | <a name="output_name"></a> [name](#output\_name) | The name of the IP set. |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

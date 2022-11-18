@@ -29,6 +29,6 @@ output "ip_address_type" {
 }
 
 output "ip_addresses" {
-  description = "The list of domains from the firewall domain list."
+  description = "A list of strings that specify one or more IP addresses or blocks of IP addresses in Classless Inter-Domain Routing (CIDR) notation."
   value       = aws_wafv2_ip_set.this.addresses
 }
