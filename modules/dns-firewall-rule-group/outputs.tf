@@ -13,11 +13,6 @@ output "owner_id" {
   value       = aws_route53_resolver_firewall_rule_group.this.owner_id
 }
 
-output "share_status" {
-  description = "Whether the rule group is shared with other AWS accounts, or was shared with the current account by another AWS account. Sharing is configured through AWS Resource Access Manager (AWS RAM). Valid values: `NOT_SHARED`, `SHARED_BY_ME`, `SHARED_WITH_ME`."
-  value       = aws_route53_resolver_firewall_rule_group.this.share_status
-}
-
 output "name" {
   description = "The name of the firewall rule group."
   value       = aws_route53_resolver_firewall_rule_group.this.name
@@ -50,5 +45,17 @@ output "rules" {
         }
       }[rule.action], {})
     }
+  }
+}
+
+output "sharing" {
+  description = <<EOF
+  The configuration for sharing of the Route53 Resolver DNS Firewall Rule Group.
+    `status` - An indication of whether the rule group is shared with other AWS accounts, or was shared with the current account by another AWS account. Sharing is configured through AWS Resource Access Manager (AWS RAM). Values are `NOT_SHARED`, `SHARED_BY_ME` or `SHARED_WITH_ME`.
+    `shares` - The list of resource shares via RAM (Resource Access Manager).
+  EOF
+  value = {
+    status = aws_route53_resolver_firewall_rule_group.this.share_status
+    shares = module.share
   }
 }
