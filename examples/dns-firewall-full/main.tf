@@ -56,6 +56,13 @@ module "rule_group" {
     },
   ]
 
+  shares = [
+    # {
+    #   name       = "main"
+    #   principals = ["111111111"]
+    # }
+  ]
+
   tags = {
     "project" = "terraform-aws-firewall-examples"
   }
