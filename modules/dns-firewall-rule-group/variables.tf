@@ -33,13 +33,13 @@ variable "rules" {
 
     action = string
     action_parameters = optional(object({
-      response = optional(string, null)
+      response = optional(string)
       override = optional(object({
         type  = string
         value = string
         ttl   = number
-      }), null)
-    }), null)
+      }))
+    }))
   }))
   default  = []
   nullable = false
@@ -66,7 +66,7 @@ variable "rules" {
   validation {
     condition = alltrue([
       for rule in var.rules :
-      contains(["NODATA", "NXDOMAIN", "OVERRIDE"], rule.action_parameters.response)
+      contains(["NODATA", "NXDOMAIN", "OVERRIDE"], try(rule.action_parameters.response, null))
       if rule.action == "BLOCK"
     ])
     error_message = "Valid values for `rule.action_parameters.response` from `rules` are `NODATA`, `NXDOMAIN`, `OVERRIDE`."
@@ -79,7 +79,7 @@ variable "rules" {
         for key in ["type", "value", "ttl"] :
         contains(try(keys(rule.action_parameters.override), []), key)
       ])
-      if rule.action_parameters.response == "OVERRIDE"
+      if try(rule.action_parameters.response, null) == "OVERRIDE"
     ])
     error_message = "`rule.action_parameters.override` from `rules` should have `type`, `value`, `ttl`."
   }
