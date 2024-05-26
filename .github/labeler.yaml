@@ -1,13 +1,30 @@
 # Modules
 ":floppy_disk: dns-firewall-domain-list":
-- modules/dns-firewall-domain-list/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - modules/dns-firewall-domain-list/**/*
+
 ":floppy_disk: dns-firewall-rule-group":
-- modules/dns-firewall-rule-group/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - modules/dns-firewall-rule-group/**/*
+
 ":floppy_disk: dns-firewall":
-- modules/dns-firewall/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - modules/dns-firewall/**/*
+
 ":floppy_disk: fms-dns-firewall-policy":
-- modules/fms-dns-firewall-policy/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - modules/fms-dns-firewall-policy/**/*
+
 ":floppy_disk: network-firewall":
-- modules/network-firewall/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - modules/network-firewall/**/*
+
 ":floppy_disk: waf-ip-set":
-- modules/waf-ip-set/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - modules/waf-ip-set/**/*
