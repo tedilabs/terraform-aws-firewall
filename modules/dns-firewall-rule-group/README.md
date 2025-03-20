@@ -5,7 +5,7 @@ This module creates following resources.
 - `aws_route53_resolver_firewall_rule_group`
 - `aws_route53_resolver_firewall_rule` (optional)
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -57,4 +57,4 @@ This module creates following resources.
 | <a name="output_owner_id"></a> [owner\_id](#output\_owner\_id) | The AWS Account ID for the account that created the rule group. |
 | <a name="output_rules"></a> [rules](#output\_rules) | The rules of the firewall rule group. |
 | <a name="output_sharing"></a> [sharing](#output\_sharing) | The configuration for sharing of the Route53 Resolver DNS Firewall Rule Group.<br>    `status` - An indication of whether the rule group is shared with other AWS accounts, or was shared with the current account by another AWS account. Sharing is configured through AWS Resource Access Manager (AWS RAM). Values are `NOT_SHARED`, `SHARED_BY_ME` or `SHARED_WITH_ME`.<br>    `shares` - The list of resource shares via RAM (Resource Access Manager). |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->

@@ -4,7 +4,7 @@ This module creates following resources.
 
 - `aws_fms_policy`
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -59,4 +59,4 @@ This module creates following resources.
 | <a name="output_name"></a> [name](#output\_name) | The name of the AWS Firewall Manager Policy. |
 | <a name="output_policy"></a> [policy](#output\_policy) | The configuration of this policy. |
 | <a name="output_scope"></a> [scope](#output\_scope) | The configuration of this policy scope. |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->

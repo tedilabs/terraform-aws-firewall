@@ -5,7 +5,7 @@ This module creates following resources.
 - `aws_route53_resolver_firewall_config`
 - `aws_route53_resolver_firewall_rule_group_association` (optional)
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -54,4 +54,4 @@ This module creates following resources.
 | <a name="output_owner_id"></a> [owner\_id](#output\_owner\_id) | The AWS Account ID of the owner of the VPC that this firewall applies to. |
 | <a name="output_rule_groups"></a> [rule\_groups](#output\_rule\_groups) | The configuration of rule groups associated with the firewall. |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The VPC ID which the firewall applies to. |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->

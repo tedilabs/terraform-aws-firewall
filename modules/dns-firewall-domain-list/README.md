@@ -4,7 +4,7 @@ This module creates following resources.
 
 - `aws_route53_resolver_firewall_domain_list`
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -50,4 +50,4 @@ This module creates following resources.
 | <a name="output_domains"></a> [domains](#output\_domains) | The list of domains from the firewall domain list. |
 | <a name="output_id"></a> [id](#output\_id) | The ID of the domain list. |
 | <a name="output_name"></a> [name](#output\_name) | The name of the domain list. |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->
