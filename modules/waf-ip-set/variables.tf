@@ -1,10 +1,18 @@
+variable "region" {
+  description = "(Optional) The region in which to create the module resources. If not provided, the module resources will be created in the provider's configured region."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
 variable "name" {
   description = "(Required) A name of the IP set."
   type        = string
+  nullable    = false
 }
 
 variable "description" {
-  description = "(Optional) The description of the IP set."
+  description = "(Optional) The description of the IP set. Defaults to `Managed by Terraform.`."
   type        = string
   default     = "Managed by Terraform."
   nullable    = false
@@ -30,8 +38,8 @@ variable "ip_address_type" {
 }
 
 variable "ip_addresses" {
-  description = "(Optional) A list of strings that specify one or more IP addresses or blocks of IP addresses in Classless Inter-Domain Routing (CIDR) notation. AWS WAF supports all address ranges for IP versions IPv4 and IPv6."
-  type        = list(string)
+  description = "(Optional) A set of strings that specify one or more IP addresses or blocks of IP addresses in Classless Inter-Domain Routing (CIDR) notation. AWS WAF supports all address ranges for IP versions IPv4 and IPv6."
+  type        = set(string)
   default     = []
   nullable    = false
 }
@@ -54,9 +62,6 @@ variable "module_tags_enabled" {
 ###################################################
 # Resource Group
 ###################################################
-
-
-
 
 variable "resource_group" {
   description = <<EOF
