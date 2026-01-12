@@ -12,6 +12,7 @@ Terraform module which creates firewall related resources on AWS.
 - [fms-dns-firewall-policy](./modules/fms-dns-firewall-policy)
 - [network-firewall](./modules/network-firewall)
 - [waf-ip-set](./modules/waf-ip-set)
+- [waf-regex-pattern-set](./modules/waf-regex-pattern-set)
 
 
 ## Target AWS Services
@@ -28,6 +29,7 @@ Terraform Modules from [this package](https://github.com/tedilabs/terraform-aws-
   - Firewall
 - **AWS WAF (Web Application Firewall)**
   - IP Set
+  - REGEX Pattern Set
 
 
 ## Usage
