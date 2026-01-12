@@ -20,6 +20,8 @@ locals {
 ###################################################
 
 resource "aws_wafv2_ip_set" "this" {
+  region = var.region
+
   name        = var.name
   description = var.description
 
