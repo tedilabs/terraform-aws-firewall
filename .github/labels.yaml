@@ -26,3 +26,7 @@
 - color: "fbca04"
   description: "This issue or pull request is related to waf-regex-pattern-set module."
   name: ":floppy_disk: waf-regex-pattern-set"
+
+- color: "fbca04"
+  description: "This issue or pull request is related to waf-web-acl module."
+  name: ":floppy_disk: waf-web-acl"

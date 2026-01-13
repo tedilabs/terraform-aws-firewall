@@ -33,3 +33,8 @@
 - changed-files:
   - any-glob-to-any-file:
     - modules/waf-regex-pattern-set/**/*
+
+":floppy_disk: waf-web-acl":
+- changed-files:
+  - any-glob-to-any-file:
+    - modules/waf-web-acl/**/*
