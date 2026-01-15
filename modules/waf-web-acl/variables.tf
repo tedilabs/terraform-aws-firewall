@@ -82,23 +82,23 @@ variable "token_config" {
     token_domains = optional(set(string), [])
     captcha = optional(object({
       default_immunity_time = optional(number, 300)
-    }), {})
+    }))
     challenge = optional(object({
       default_immunity_time = optional(number, 300)
-    }), {})
+    }))
   })
   default  = {}
   nullable = false
 
   validation {
-    condition = alltrue([
+    condition = var.token_config.captcha == null || alltrue([
       var.token_config.captcha.default_immunity_time >= 60,
       var.token_config.captcha.default_immunity_time <= 259200,
     ])
     error_message = "Valid value for `token_config.captcha.default_immunity_time` is between 60 and 259200 seconds."
   }
   validation {
-    condition = alltrue([
+    condition = var.token_config.challenge == null || alltrue([
       var.token_config.challenge.default_immunity_time >= 300,
       var.token_config.challenge.default_immunity_time <= 259200,
     ])
@@ -125,6 +125,20 @@ variable "observability" {
     }), {})
   })
   default  = {}
+  nullable = false
+}
+
+variable "resource_associations" {
+  description = <<EOF
+  (Optional) A configurations of resources to associate with this WAF Web ACL. Each items of `resource_associations` block as defined below.
+    (Required) `name` - A friendly name of the resource. This value is only used internally within Terraform code.
+    (Required) `resource` - The ARN of the resource to associate with the WAF Web ACL.
+  EOF
+  type = list(object({
+    name     = string
+    resource = string
+  }))
+  default  = []
   nullable = false
 }
 

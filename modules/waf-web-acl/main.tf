@@ -79,14 +79,24 @@ resource "aws_wafv2_web_acl" "this" {
   ## Token Configuration
   token_domains = var.token_config.token_domains
 
-  captcha_config {
-    immunity_time_property {
-      immunity_time = var.token_config.captcha.default_immunity_time
+  dynamic "captcha_config" {
+    for_each = var.token_config.captcha != null ? [var.token_config.captcha] : []
+    iterator = captcha
+
+    content {
+      immunity_time_property {
+        immunity_time = captcha.value.default_immunity_time
+      }
     }
   }
-  challenge_config {
-    immunity_time_property {
-      immunity_time = var.token_config.challenge.default_immunity_time
+  dynamic "challenge_config" {
+    for_each = var.token_config.challenge != null ? [var.token_config.challenge] : []
+    iterator = challenge
+
+    content {
+      immunity_time_property {
+        immunity_time = challenge.value.default_immunity_time
+      }
     }
   }
 

@@ -48,10 +48,10 @@ output "token_config" {
   value = {
     token_domains = aws_wafv2_web_acl.this.token_domains
     captcha = {
-      default_immunity_time = aws_wafv2_web_acl.this.captcha_config[0].immunity_time_property[0].immunity_time
+      default_immunity_time = coalesce(one(aws_wafv2_web_acl.this.captcha_config[*].immunity_time_property[0].immunity_time), 300)
     }
     challenge = {
-      default_immunity_time = aws_wafv2_web_acl.this.challenge_config[0].immunity_time_property[0].immunity_time
+      default_immunity_time = coalesce(one(aws_wafv2_web_acl.this.challenge_config[*].immunity_time_property[0].immunity_time), 300)
     }
   }
 }
@@ -69,9 +69,15 @@ output "observability" {
   }
 }
 
-output "lock_token" {
-  description = "The lock token used for optimistic locking."
-  value       = aws_wafv2_web_acl.this.lock_token
+output "resource_associations" {
+  description = "The resource associations of the WAF Web ACL."
+  value = [
+    for assoc in aws_wafv2_web_acl_association.this :
+    {
+      name         = assoc.key
+      resource_arn = assoc.value.resource_arn
+    }
+  ]
 }
 
 output "resource_group" {

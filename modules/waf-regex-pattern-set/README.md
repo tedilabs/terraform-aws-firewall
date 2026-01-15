@@ -51,7 +51,6 @@ This module creates following resources.
 | <a name="output_description"></a> [description](#output\_description) | The description of the regular expression pattern set. |
 | <a name="output_id"></a> [id](#output\_id) | The ID of the regular expression pattern set. |
 | <a name="output_is_global"></a> [is\_global](#output\_is\_global) | Whether this is for a global application(AWS CloudFront distribution) or for a regional application. |
-| <a name="output_lock_token"></a> [lock\_token](#output\_lock\_token) | The lock token used for optimistic locking. |
 | <a name="output_name"></a> [name](#output\_name) | The name of the regular expression pattern set. |
 | <a name="output_regex_patterns"></a> [regex\_patterns](#output\_regex\_patterns) | A set of regular expressions for the regex pattern set. |
 | <a name="output_region"></a> [region](#output\_region) | The AWS region this module resources resides in. |

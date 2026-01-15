@@ -33,11 +33,6 @@ output "regex_patterns" {
   value       = aws_wafv2_regex_pattern_set.this.regular_expression[*].regex_string
 }
 
-output "lock_token" {
-  description = "The lock token used for optimistic locking."
-  value       = aws_wafv2_regex_pattern_set.this.lock_token
-}
-
 output "resource_group" {
   description = "The resource group created to manage resources in this module."
   value = merge(
