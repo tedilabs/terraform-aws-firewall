@@ -36,17 +36,20 @@ variable "default_action" {
   }
 }
 
-variable "custom_request_headers" {
+variable "custom_request" {
   description = <<EOF
-  (Optional) A list of custom HTTP headers to insert into the request. Only used if the `default_action` is set to `ALLOW`. Each items of `custom_requeset_headers` block as defined below.
-    (Required) `name` - The name of the custom HTTP header. For custom request header insertion, when AWS WAF inserts the header into the request, it prefixes this name `x-amzn-waf-`, to avoid confusion with the headers that are already in the request. For example, for the header name `sample`, AWS WAF inserts the header `x-amzn-waf-sample`.
-    (Required) `value` - The value of the custom HTTP header.
+  (Optional) A custom request to insert into the request. Only used if the `default_action` is set to `ALLOW`. `custom_request` as defined below.
+    (Optional) `headers` - A list of custom HTTP headers to insert into the request. Only used if the `default_action` is set to `ALLOW`. Each items of `custom_requeset_headers` block as defined below.
+      (Required) `name` - The name of the custom HTTP header. For custom request header insertion, when AWS WAF inserts the header into the request, it prefixes this name `x-amzn-waf-`, to avoid confusion with the headers that are already in the request. For example, for the header name `sample`, AWS WAF inserts the header `x-amzn-waf-sample`.
+      (Required) `value` - The value of the custom HTTP header.
   EOF
-  type = list(object({
-    name  = string
-    value = string
-  }))
-  default  = []
+  type = object({
+    headers = optional(list(object({
+      name  = string
+      value = string
+    })), [])
+  })
+  default  = {}
   nullable = false
 }
 
@@ -126,6 +129,62 @@ variable "observability" {
   })
   default  = {}
   nullable = false
+}
+
+variable "resource_config" {
+  description = <<EOF
+  (Optional) A configurations of resources for the WAF Web ACL. `resource_config` as defined below.
+    (Optional) `api_gateawy` - A configurations for API Gateway resources. `api_gateway` as defined below.
+      (Optional) `web_request_body_inspection_size_limit` - The maximum size of the request body that AWS WAF inspects for the resource. Valid values are `KB_16`, `KB_32`, `KB_48`, `KB_64`. Defaults to `KB_16`.
+    (Optional) `app_runner_service` - A configurations for App Runner Service resources. `app_runner_service` as defined below.
+      (Optional) `web_request_body_inspection_size_limit` - The maximum size of the request body that AWS WAF inspects for the resource. Valid values are `KB_16`, `KB_32`, `KB_48`, `KB_64`. Defaults to `KB_16`.
+    (Optional) `cloudfront` - A configurations for CloudFront resources. `cloudfront` as defined below.
+      (Optional) `web_request_body_inspection_size_limit` - The maximum size of the request body that AWS WAF inspects for the resource. Valid values are `KB_16`, `KB_32`, `KB_48`, `KB_64`. Defaults to `KB_16`.
+    (Optional) `cognito_user_pool` - A configurations for Cognito User Pool resources. `cognito_user_pool` as defined below.
+      (Optional) `web_request_body_inspection_size_limit` - The maximum size of the request body that AWS WAF inspects for the resource. Valid values are `KB_16`, `KB_32`, `KB_48`, `KB_64`. Defaults to `KB_16`.
+    (Optional) `verified_access_instance` - A configurations for Verified Access Instance resources. `verified_access_instance` as defined below.
+      (Optional) `web_request_body_inspection_size_limit` - The maximum size of the request body that AWS WAF inspects for the resource. Valid values are `KB_16`, `KB_32`, `KB_48`, `KB_64`. Defaults to `KB_16`.
+  EOF
+  type = object({
+    api_gateway = optional(object({
+      web_request_body_inspection_size_limit = optional(string, "KB_16")
+    }))
+    app_runner_service = optional(object({
+      web_request_body_inspection_size_limit = optional(string, "KB_16")
+    }))
+    cloudfront = optional(object({
+      web_request_body_inspection_size_limit = optional(string, "KB_16")
+    }))
+    cognito_user_pool = optional(object({
+      web_request_body_inspection_size_limit = optional(string, "KB_16")
+    }))
+    verified_access_instance = optional(object({
+      web_request_body_inspection_size_limit = optional(string, "KB_16")
+    }))
+  })
+  default  = {}
+  nullable = false
+
+  validation {
+    condition     = var.resource_config.api_gateway == null || contains(["KB_16", "KB_32", "KB_48", "KB_64"], var.resource_config.api_gateway.web_request_body_inspection_size_limit)
+    error_message = "Valid values for `resource_config.api_gateway.web_request_body_inspection_size_limit` are `KB_16`, `KB_32`, `KB_48`, `KB_64`."
+  }
+  validation {
+    condition     = var.resource_config.app_runner_service == null || contains(["KB_16", "KB_32", "KB_48", "KB_64"], var.resource_config.app_runner_service.web_request_body_inspection_size_limit)
+    error_message = "Valid values for `resource_config.app_runner_service.web_request_body_inspection_size_limit` are `KB_16`, `KB_32`, `KB_48`, `KB_64`."
+  }
+  validation {
+    condition     = var.resource_config.cloudfront == null || contains(["KB_16", "KB_32", "KB_48", "KB_64"], var.resource_config.cloudfront.web_request_body_inspection_size_limit)
+    error_message = "Valid values for `resource_config.cloudfront.web_request_body_inspection_size_limit` are `KB_16`, `KB_32`, `KB_48`, `KB_64`."
+  }
+  validation {
+    condition     = var.resource_config.cognito_user_pool == null || contains(["KB_16", "KB_32", "KB_48", "KB_64"], var.resource_config.cognito_user_pool.web_request_body_inspection_size_limit)
+    error_message = "Valid values for `resource_config.cognito_user_pool.web_request_body_inspection_size_limit` are `KB_16`, `KB_32`, `KB_48`, `KB_64`."
+  }
+  validation {
+    condition     = var.resource_config.verified_access_instance == null || contains(["KB_16", "KB_32", "KB_48", "KB_64"], var.resource_config.verified_access_instance.web_request_body_inspection_size_limit)
+    error_message = "Valid values for `resource_config.verified_access_instance.web_request_body_inspection_size_limit` are `KB_16`, `KB_32`, `KB_48`, `KB_64`."
+  }
 }
 
 variable "resource_associations" {

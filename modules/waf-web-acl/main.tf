@@ -14,6 +14,15 @@ locals {
   } : {}
 }
 
+locals {
+  resource_config_enabled = anytrue([
+    var.resource_config.api_gateway != null,
+    var.resource_config.app_runner_service != null,
+    var.resource_config.cloudfront != null,
+    var.resource_config.cognito_user_pool != null,
+    var.resource_config.verified_access_instance != null,
+  ])
+}
 
 ###################################################
 # Web ACL for WAF (Web Application Firewall)
@@ -33,11 +42,11 @@ resource "aws_wafv2_web_acl" "this" {
 
       content {
         dynamic "custom_request_handling" {
-          for_each = length(var.custom_request_headers) > 0 ? ["go"] : []
+          for_each = length(var.custom_request.headers) > 0 ? ["go"] : []
 
           content {
             dynamic "insert_header" {
-              for_each = var.custom_request_headers
+              for_each = var.custom_request.headers
               iterator = header
 
               content {
@@ -109,6 +118,52 @@ resource "aws_wafv2_web_acl" "this" {
     sampled_requests_enabled = var.observability.request_sampling.enabled
   }
 
+
+  ## Resourcees
+  dynamic "association_config" {
+    for_each = local.resource_config_enabled ? [var.resource_config] : []
+    iterator = config
+
+    content {
+      request_body {
+        dynamic "api_gateway" {
+          for_each = config.value.api_gateway != null ? [config.value.api_gateway] : []
+
+          content {
+            default_size_inspection_limit = api_gateway.value.web_request_body_inspection_size_limit
+          }
+        }
+        dynamic "app_runner_service" {
+          for_each = config.value.app_runner_service != null ? [config.value.app_runner_service] : []
+
+          content {
+            default_size_inspection_limit = app_runner_service.value.web_request_body_inspection_size_limit
+          }
+        }
+        dynamic "cloudfront" {
+          for_each = config.value.cloudfront != null ? [config.value.cloudfront] : []
+
+          content {
+            default_size_inspection_limit = cloudfront.value.web_request_body_inspection_size_limit
+          }
+        }
+        dynamic "cognito_user_pool" {
+          for_each = config.value.cognito_user_pool != null ? [config.value.cognito_user_pool] : []
+
+          content {
+            default_size_inspection_limit = cognito_user_pool.value.web_request_body_inspection_size_limit
+          }
+        }
+        dynamic "verified_access_instance" {
+          for_each = config.value.verified_access_instance != null ? [config.value.verified_access_instance] : []
+
+          content {
+            default_size_inspection_limit = verified_access_instance.value.web_request_body_inspection_size_limit
+          }
+        }
+      }
+    }
+  }
 
   tags = merge(
     {

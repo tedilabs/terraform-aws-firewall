@@ -43,6 +43,27 @@ output "default_action" {
   value       = length(aws_wafv2_web_acl.this.default_action[0].allow[*]) > 0 ? "ALLOW" : "BLOCK"
 }
 
+output "custom_request" {
+  description = "The custom request configuration when the default action of the WEB ACL is set to `ALLOW`."
+  value = (var.default_action == "ALLOW"
+    ? {
+      headers = coalesce(one(aws_wafv2_web_acl.this.default_action[0].allow[0].custom_request_handling[*].insert_header), [])
+    }
+    : null
+  )
+}
+
+output "custom_response" {
+  description = "The custom response configuration when the default action of the WEB ACL is set to `BLOCK`."
+  value = (var.default_action == "BLOCK" && var.custom_response != null
+    ? {
+      status_code = one(aws_wafv2_web_acl.this.default_action[0].block[0].custom_response[*].response_code)
+      headers     = coalesce(one(aws_wafv2_web_acl.this.default_action[0].block[0].custom_response[*].response_header), [])
+    }
+    : null
+  )
+}
+
 output "token_config" {
   description = "The configuration for tokens for the WAF Web ACL."
   value = {
@@ -66,6 +87,17 @@ output "observability" {
     request_sampling = {
       enabled = aws_wafv2_web_acl.this.visibility_config[0].sampled_requests_enabled
     }
+  }
+}
+
+output "resource_config" {
+  description = "The configurations of resources for the WAF Web ACL."
+  value = {
+    api_gateway              = var.resource_config.api_gateway
+    app_runner_service       = var.resource_config.app_runner_service
+    cloudfront               = var.resource_config.cloudfront
+    cognito_user_pool        = var.resource_config.cognito_user_pool
+    verified_access_instance = var.resource_config.verified_access_instance
   }
 }
 
@@ -100,6 +132,6 @@ output "resource_group" {
 #   value = {
 #     for k, v in aws_wafv2_web_acl.this :
 #     k => v
-#     if !contains(["arn", "id", "name", "name_prefix", "description", "capacity", "visibility_config", "tags", "tags_all", "application_integration_url", "lock_token", "region", "scope", "captcha_config", "challenge_config", "token_domains"], k)
+#     if !contains(["arn", "id", "name", "name_prefix", "description", "capacity", "visibility_config", "tags", "tags_all", "application_integration_url", "lock_token", "region", "scope", "captcha_config", "challenge_config", "token_domains", "default_action", "association_config"], k)
 #   }
 # }
