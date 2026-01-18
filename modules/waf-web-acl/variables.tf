@@ -49,8 +49,8 @@ variable "custom_request" {
       value = string
     })), [])
   })
-  default  = {}
-  nullable = false
+  default  = null
+  nullable = true
 }
 
 variable "custom_response" {
@@ -70,6 +70,96 @@ variable "custom_response" {
   })
   default  = null
   nullable = true
+}
+
+variable "rules" {
+  description = <<EOF
+  (Optional) A list of rules to include in the WAF Web ACL. Each items of `rules` block as defined below.
+    (Required) `name` - A friendly name of the rule. Note that the provider assumes that rules with names matching this pattern, `^ShieldMitigationRuleGroup_<account-id>_<web-acl-guid>_.*`, are AWS-added for automatic application layer DDoS mitigation activities. Such rules will be ignored by the provider unless you explicitly include them in your configuration (for example, by using the AWS CLI to discover their properties and creating matching configuration). However, since these rules are owned and managed by AWS, you may get permission errors.
+    (Required) `priority` - The priority of the rule in the web ACL. Rules with a lower priority are evaluated before rules with a higher priority.
+    (Optional) `labels` - A set of labels to associate with requests that match this rule. Rules that are evaluated later in the same protection pack (web ACL) can reference the labels that this rule adds. A label is a string containing the label name and optional prefix and namespaces. For example, `namespace1:name` or `awswaf:managed:aws:managed-rule-set:namespace1:name`. You can specify up to 5 namespaces in a label. Labels are case sensitive
+    (Required) `action` - The action that AWS WAF should take on a web request when it matches the rule's statement. Valid values are `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, `COUNT`.
+    (Required) `override_action` - The action to take on a web request when it matches the rule's statement. Valid values are `COUNT`, `NONE`.
+    (Required) `statement` - A rule statement that defines the inspection criteria to identify web requests that you want to allow, block, or count. See AWS WAF documentation for details.
+    (Optional) `token_config` - A configurations of tokens on the rule level. `token_config` as defined below.
+      (Optional) `captcha` - A configurations for CAPTCHA token settings. `captcha` as defined below.
+        (Optional) `immunity_time` - Specify how long CAPTCHA tokens can be used after they are created. This value must be between `60` to `259200` seconds. The Web ACL configuration applies to the rule that don't specify this.
+      (Optional) `challenge` - A configurations for Challenge token settings. `challenge` as defined below.
+        (Optional) `immunity_time` - Specify how long Challenge tokens can be used after they are created. This value must be between `300` to `259200` seconds. The Web ACL configuration applies to the rule that don't specify this.
+    (Optional) `observability` - A configurations for WAF observability features on the rule level. `observability` as defined below.
+      (Optional) `cloudwatch_metrics` - A configurations for CloudWatch metrics of the rule. `cloudwatch_metrics` as defined below.
+        (Optional) `enabled` - Whether to enable CloudWatch metrics for the rule. Defaults to the Web ACL level setting.
+        (Optional) `metric_name` - The name of the CloudWatch metric. The name can contain only alphanumeric characters (A-Z, a-z, 0-9) hyphen(-) and underscore (_), with length from one to 128 characters. It can't contain whitespace or metric names reserved for AWS WAF, for example `All` and `Default_Action`. If not provided, the rule name will be used.
+      (Optional) `request_sampling` - A configurations for request sampling of the rule. `request_sampling` as defined below.
+        (Optional) `enabled` - Whether AWS WAF should store a sampling of the web requests that match the rule. You can view the sampled requests through the AWS WAF console. Defaults to the Web ACL level setting.
+  EOF
+  type = list(object({
+    name     = string
+    priority = number
+    labels   = optional(set(string), [])
+    action   = string
+    custom_request = optional(object({
+      headers = optional(list(object({
+        name  = string
+        value = string
+      })), [])
+    }))
+    custom_response = optional(object({
+      status_code = number
+      headers = optional(list(object({
+        name  = string
+        value = string
+      })), [])
+    }))
+    statement = any
+    token_config = optional(object({
+      captcha = optional(object({
+        immunity_time = optional(number, 300)
+      }))
+      challenge = optional(object({
+        immunity_time = optional(number, 300)
+      }))
+    }), {})
+    observability = optional(object({
+      cloudwatch_metrics = optional(object({
+        enabled     = optional(bool)
+        metric_name = optional(string, "")
+      }), {})
+      request_sampling = optional(object({
+        enabled = optional(bool)
+      }), {})
+    }), {})
+  }))
+  default  = []
+  nullable = false
+
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      contains(["ALLOW", "BLOCK", "CAPTCHA", "CHALLENGE", "COUNT"], rule.action)
+    ])
+    error_message = "Valid values for `rules[].action` are `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, or `COUNT`."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      rule.token_config.captcha == null || alltrue([
+        rule.token_config.captcha.immunity_time >= 60,
+        rule.token_config.captcha.immunity_time <= 259200,
+      ])
+    ])
+    error_message = "Valid value for `rules[].token_config.captcha.immunity_time` is between 60 and 259200 seconds."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      rule.token_config.challenge == null || alltrue([
+        rule.token_config.challenge.immunity_time >= 300,
+        rule.token_config.challenge.immunity_time <= 259200,
+      ])
+    ])
+    error_message = "Valid value for `rules[].token_config.challenge.immunity_time` is between 300 and 259200 seconds."
+  }
 }
 
 variable "token_config" {

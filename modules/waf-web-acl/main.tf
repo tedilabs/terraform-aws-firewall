@@ -36,17 +36,20 @@ resource "aws_wafv2_web_acl" "this" {
 
   scope = var.is_global ? "CLOUDFRONT" : "REGIONAL"
 
+
+  ## Rules
   default_action {
     dynamic "allow" {
       for_each = var.default_action == "ALLOW" ? ["go"] : []
 
       content {
         dynamic "custom_request_handling" {
-          for_each = length(var.custom_request.headers) > 0 ? ["go"] : []
+          for_each = var.custom_request != null ? [var.custom_request] : []
+          iterator = request
 
           content {
             dynamic "insert_header" {
-              for_each = var.custom_request.headers
+              for_each = request.value.headers
               iterator = header
 
               content {
@@ -64,13 +67,14 @@ resource "aws_wafv2_web_acl" "this" {
 
       content {
         dynamic "custom_response" {
-          for_each = var.custom_response != null ? ["go"] : []
+          for_each = var.custom_response != null ? [var.custom_response] : []
+          iterator = response
 
           content {
-            response_code = var.custom_response.status_code
+            response_code = response.value.status_code
 
             dynamic "response_header" {
-              for_each = var.custom_response.headers
+              for_each = response.value.headers
               iterator = header
 
               content {
@@ -84,6 +88,178 @@ resource "aws_wafv2_web_acl" "this" {
     }
   }
 
+  dynamic "rule" {
+    for_each = var.rules
+
+    content {
+      name     = rule.value.anme
+      priority = rule.value.priority
+
+      dynamic "rule_label" {
+        for_each = rule.value.labels
+        iterator = label
+
+        content {
+          name = label.value
+        }
+      }
+
+      dynamic "action" {
+        for_each = [rule.value.action]
+
+        content {
+          dynamic "allow" {
+            for_each = action.value == "ALLOW" ? ["go"] : []
+
+            content {
+              dynamic "custom_request_handling" {
+                for_each = rule.value.custom_request != null ? [rule.value.custom_request] : []
+                iterator = request
+
+                content {
+                  dynamic "insert_header" {
+                    for_each = request.value.headers
+                    iterator = header
+
+                    content {
+                      name  = header.value.name
+                      value = header.value.value
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          dynamic "block" {
+            for_each = rule.value.action.type == "BLOCK" ? ["go"] : []
+
+            content {
+              dynamic "custom_response" {
+                for_each = rule.value.custom_response != null ? [rule.value.custom_response] : []
+                iterator = response
+
+                content {
+                  response_code = response.value.status_code
+
+                  dynamic "response_header" {
+                    for_each = response.value.headers
+                    iterator = header
+
+                    content {
+                      name  = header.value.name
+                      value = header.value.value
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          dynamic "captcha" {
+            for_each = action.value == "CAPTCHA" ? ["go"] : []
+
+            content {
+              dynamic "custom_request_handling" {
+                for_each = rule.value.custom_request != null ? [rule.value.custom_request] : []
+                iterator = request
+
+                content {
+                  dynamic "insert_header" {
+                    for_each = request.value.headers
+                    iterator = header
+
+                    content {
+                      name  = header.value.name
+                      value = header.value.value
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          dynamic "challenge" {
+            for_each = action.value == "CHALLENGE" ? ["go"] : []
+
+            content {
+              dynamic "custom_request_handling" {
+                for_each = rule.value.custom_request != null ? [rule.value.custom_request] : []
+                iterator = request
+
+                content {
+                  dynamic "insert_header" {
+                    for_each = request.value.headers
+                    iterator = header
+
+                    content {
+                      name  = header.value.name
+                      value = header.value.value
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          dynamic "count" {
+            for_each = action.value == "COUNT" ? ["go"] : []
+
+            content {
+              dynamic "custom_request_handling" {
+                for_each = rule.value.custom_request != null ? [rule.value.custom_request] : []
+                iterator = request
+
+                content {
+                  dynamic "insert_header" {
+                    for_each = request.value.headers
+                    iterator = header
+
+                    content {
+                      name  = header.value.name
+                      value = header.value.value
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+
+      ## Token Configuration
+      dynamic "captcha_config" {
+        for_each = rule.value.captcha != null ? [rule.value.captcha] : []
+        iterator = captcha
+
+        content {
+          immunity_time_property {
+            immunity_time = captcha.value.immunity_time
+          }
+        }
+      }
+      dynamic "challenge_config" {
+        for_each = rule.value.challenge != null ? [rule.value.challenge] : []
+        iterator = challenge
+
+        content {
+          immunity_time_property {
+            immunity_time = challenge.value.immunity_time
+          }
+        }
+      }
+
+
+      ## Observability
+      visibility_config {
+        cloudwatch_metrics_enabled = coalesce(rule.value.observability.cloudwatch_metrics.enabled, var.observability.cloudwatch_metrics.enabled)
+        metric_name                = coalesce(rule.value.observability.cloudwatch_metrics.metric_name, rule.value.name)
+
+        sampled_requests_enabled = coalesce(rule.value.observability.request_sampling.enabled, var.observability.request_sampling.enabled)
+      }
+    }
+  }
 
   ## Token Configuration
   token_domains = var.token_config.token_domains
