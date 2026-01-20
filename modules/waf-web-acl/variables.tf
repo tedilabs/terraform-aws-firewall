@@ -76,11 +76,20 @@ variable "rules" {
   description = <<EOF
   (Optional) A list of rules to include in the WAF Web ACL. Each items of `rules` block as defined below.
     (Required) `name` - A friendly name of the rule. Note that the provider assumes that rules with names matching this pattern, `^ShieldMitigationRuleGroup_<account-id>_<web-acl-guid>_.*`, are AWS-added for automatic application layer DDoS mitigation activities. Such rules will be ignored by the provider unless you explicitly include them in your configuration (for example, by using the AWS CLI to discover their properties and creating matching configuration). However, since these rules are owned and managed by AWS, you may get permission errors.
-    (Required) `priority` - The priority of the rule in the web ACL. Rules with a lower priority are evaluated before rules with a higher priority.
+    (Required) `priority` - The priority of the rule in the web ACL. Rules with a lower priority are evaluated before rules with a higher priority. Valid values are between 0 and 10000.
     (Optional) `labels` - A set of labels to associate with requests that match this rule. Rules that are evaluated later in the same protection pack (web ACL) can reference the labels that this rule adds. A label is a string containing the label name and optional prefix and namespaces. For example, `namespace1:name` or `awswaf:managed:aws:managed-rule-set:namespace1:name`. You can specify up to 5 namespaces in a label. Labels are case sensitive
     (Required) `action` - The action that AWS WAF should take on a web request when it matches the rule's statement. Valid values are `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, `COUNT`.
     (Required) `override_action` - The action to take on a web request when it matches the rule's statement. Valid values are `COUNT`, `NONE`.
-    (Required) `statement` - A rule statement that defines the inspection criteria to identify web requests that you want to allow, block, or count. See AWS WAF documentation for details.
+    (Required) `statement` - A rule statement that defines the inspection criteria. Supports all AWS WAF statement types including nested logical operators (and_statement, or_statement, not_statement) with arbitrary depth. Each rule can have a completely different statement structure. See: https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statements.html
+    (Optional) `custom_request` - A custom request handling configuration. Only used with `ALLOW`, `CAPTCHA`, `CHALLENGE`, or `COUNT` actions. `custom_request` as defined below.
+      (Optional) `headers` - A list of custom HTTP headers to insert into the request. Each items of `headers` block as defined below.
+        (Required) `name` - The name of the custom HTTP header. AWS WAF prefixes this with `x-amzn-waf-`.
+        (Required) `value` - The value of the custom HTTP header.
+    (Optional) `custom_response` - A custom response configuration. Only used with `BLOCK` action. `custom_response` as defined below.
+      (Required) `status_code` - The HTTP status code to return to the client.
+      (Optional) `headers` - A list of custom HTTP headers to include in the response. Each items of `headers` block as defined below.
+        (Required) `name` - The name of the custom HTTP header. AWS WAF prefixes this with `x-amzn-waf-`.
+        (Required) `value` - The value of the custom HTTP header.
     (Optional) `token_config` - A configurations of tokens on the rule level. `token_config` as defined below.
       (Optional) `captcha` - A configurations for CAPTCHA token settings. `captcha` as defined below.
         (Optional) `immunity_time` - Specify how long CAPTCHA tokens can be used after they are created. This value must be between `60` to `259200` seconds. The Web ACL configuration applies to the rule that don't specify this.
@@ -93,46 +102,82 @@ variable "rules" {
       (Optional) `request_sampling` - A configurations for request sampling of the rule. `request_sampling` as defined below.
         (Optional) `enabled` - Whether AWS WAF should store a sampling of the web requests that match the rule. You can view the sampled requests through the AWS WAF console. Defaults to the Web ACL level setting.
   EOF
-  type = list(object({
-    name     = string
-    priority = number
-    labels   = optional(set(string), [])
-    action   = string
-    custom_request = optional(object({
-      headers = optional(list(object({
-        name  = string
-        value = string
-      })), [])
-    }))
-    custom_response = optional(object({
-      status_code = number
-      headers = optional(list(object({
-        name  = string
-        value = string
-      })), [])
-    }))
-    statement = any
-    token_config = optional(object({
-      captcha = optional(object({
-        immunity_time = optional(number, 300)
-      }))
-      challenge = optional(object({
-        immunity_time = optional(number, 300)
-      }))
-    }), {})
-    observability = optional(object({
-      cloudwatch_metrics = optional(object({
-        enabled     = optional(bool)
-        metric_name = optional(string, "")
-      }), {})
-      request_sampling = optional(object({
-        enabled = optional(bool)
-      }), {})
-    }), {})
-  }))
+  # Note: Using `type = any` because WAF v2 statements support arbitrary nesting of logical operators (and_statement, or_statement, not_statement) which cannot be expressed as a static type constraint in Terraform.
+  type = any
+  # type = list(object({
+  #   name     = string
+  #   priority = number
+  #   labels   = optional(set(string), [])
+  #   action   = string
+  #   custom_request = optional(object({
+  #     headers = optional(list(object({
+  #       name  = string
+  #       value = string
+  #     })), [])
+  #   }))
+  #   custom_response = optional(object({
+  #     status_code = number
+  #     headers = optional(list(object({
+  #       name  = string
+  #       value = string
+  #     })), [])
+  #   }))
+  #   statement = any
+  #   token_config = optional(object({
+  #     captcha = optional(object({
+  #       immunity_time = optional(number, 300)
+  #     }))
+  #     challenge = optional(object({
+  #       immunity_time = optional(number, 300)
+  #     }))
+  #   }), {})
+  #   observability = optional(object({
+  #     cloudwatch_metrics = optional(object({
+  #       enabled     = optional(bool)
+  #       metric_name = optional(string, "")
+  #     }), {})
+  #     request_sampling = optional(object({
+  #       enabled = optional(bool)
+  #     }), {})
+  #   }), {})
+  # }))
   default  = []
   nullable = false
 
+  validation {
+    condition     = can(tolist(var.rules))
+    error_message = "The `rules` variable must be a list."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      alltrue([
+        can(rule.name),
+        can(rule.priority),
+        can(rule.action),
+        can(rule.statement)
+      ])
+    ])
+    error_message = "Each rule must have required fields: `name`, `priority`, `action`, and `statement`."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      can(tostring(rule.name))
+    ])
+    error_message = "Each rule's `name` must be a string."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      alltrue([
+        can(tonumber(rule.priority)),
+        rule.priority >= 0,
+        rule.priority <= 10000,
+      ])
+    ])
+    error_message = "Valid value for `rules[].priority` is between 0 and 10000."
+  }
   validation {
     condition = alltrue([
       for rule in var.rules :
@@ -143,22 +188,88 @@ variable "rules" {
   validation {
     condition = alltrue([
       for rule in var.rules :
-      rule.token_config.captcha == null || alltrue([
+      can(toset(rule.labels))
+      if can(rule.labels)
+    ])
+    error_message = "The `rules[].labels` must be a set of strings."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      alltrue([
+        for header in rule.custom_request.headers :
+        can(header.name) && can(header.value)
+        if can(rule.custom_request.headers)
+      ])
+      if can(rule.custom_request)
+    ])
+    error_message = "The `rules[].custom_request.headers` must be a list of objects with `name` and `value` fields."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      alltrue([
+        can(rule.custom_response.status_code),
+        can(tonumber(rule.custom_response.status_code)),
+        alltrue([
+          for header in rule.custom_response.headers :
+          can(header.name) && can(header.value)
+          if can(rule.custom_response.headers)
+        ])
+      ])
+      if can(rule.custom_response)
+    ])
+    error_message = "The `rules[].custom_response` must have a numeric `status_code` and optional `headers` list with `name` and `value` fields."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      alltrue([
         rule.token_config.captcha.immunity_time >= 60,
         rule.token_config.captcha.immunity_time <= 259200,
       ])
+      if can(rule.token_config.captcha.immunity_time)
     ])
     error_message = "Valid value for `rules[].token_config.captcha.immunity_time` is between 60 and 259200 seconds."
   }
   validation {
     condition = alltrue([
       for rule in var.rules :
-      rule.token_config.challenge == null || alltrue([
+      alltrue([
         rule.token_config.challenge.immunity_time >= 300,
         rule.token_config.challenge.immunity_time <= 259200,
       ])
+      if can(rule.token_config.challenge.immunity_time)
     ])
     error_message = "Valid value for `rules[].token_config.challenge.immunity_time` is between 300 and 259200 seconds."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      can(tobool(rule.observability.cloudwatch_metrics.enabled))
+      if can(rule.observability.cloudwatch_metrics.enabled)
+    ])
+    error_message = "The `rules[].observability.cloudwatch_metrics.enabled` must be a boolean."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      alltrue([
+        can(tostring(rule.observability.cloudwatch_metrics.metric_name)),
+        length(rule.observability.cloudwatch_metrics.metric_name) >= 1,
+        length(rule.observability.cloudwatch_metrics.metric_name) <= 128,
+      ])
+      if can(rule.observability.cloudwatch_metrics.metric_name)
+    ])
+    error_message = "The `rules[].observability.cloudwatch_metrics.metric_name` must be between 1 and 128 characters."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      can(tobool(rule.observability.request_sampling.enabled))
+      if can(rule.observability.request_sampling.enabled)
+    ])
+    error_message = "The `rules[].observability.request_sampling.enabled` must be a boolean."
   }
 }
 
