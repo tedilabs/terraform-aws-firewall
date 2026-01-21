@@ -81,6 +81,15 @@ variable "rules" {
     (Required) `action` - The action that AWS WAF should take on a web request when it matches the rule's statement. Valid values are `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, `COUNT`.
     (Required) `override_action` - The action to take on a web request when it matches the rule's statement. Valid values are `COUNT`, `NONE`.
     (Required) `statement` - A rule statement that defines the inspection criteria. Supports all AWS WAF statement types including nested logical operators (and_statement, or_statement, not_statement) with arbitrary depth. Each rule can have a completely different statement structure. See: https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statements.html
+      (Optional) `ip_set_reference` - A rule statement used to detect web requests coming from particular IP addresses or address ranges. `ip_set_reference` as defined below.
+        (Required) `arn` - The ARN of the IP Set to reference.
+        (Optional) `forwarded_ip_header` - A configuration for inspecting IP addresses in an HTTP header instead of using the IP address that's reported by the web request origin. `forwarded_ip_header` as defined below.
+          (Optional) `enabled` - Whether to use the specified HTTP header for the IP address. May be inconsistent or modified. Defaults to `false`.
+          (Optional) `name` - The name of the HTTP header to use for the IP address. `X-Forwarded-For` (XFF) is the most commonly used header for the client and proxy IP addresses. Defaults to `X-Forwarded-For`.
+          (Optional) `position` - The position in the header to search for the IP address. The header can contain IP addresses of the original client and of any proxies. Valid values are `FIRST`, `LAST`, or `ANY`. Defaults to `FIRST`.
+          (Optional) `fallback_behavior` - Handling for requests that don't have a valid IP address in the specified header. Note that, if the specified header isn't present at all in the request, AWS WAF doesn't apply the rule to the request. Valid values are `MATCH` or `NO_MATCH`. Defaults to `NO_MATCH`.
+            `MATCH` - Count and rate limit with other requests that are missing their IP address.
+            `NO_MATCH` - Don't apply the rule to the request.
     (Optional) `custom_request` - A custom request handling configuration. Only used with `ALLOW`, `CAPTCHA`, `CHALLENGE`, or `COUNT` actions. `custom_request` as defined below.
       (Optional) `headers` - A list of custom HTTP headers to insert into the request. Each items of `headers` block as defined below.
         (Required) `name` - The name of the custom HTTP header. AWS WAF prefixes this with `x-amzn-waf-`.
@@ -145,7 +154,7 @@ variable "rules" {
   nullable = false
 
   validation {
-    condition     = can(tolist(var.rules))
+    condition     = can(length(var.rules))
     error_message = "The `rules` variable must be a list."
   }
   validation {
@@ -196,10 +205,9 @@ variable "rules" {
   validation {
     condition = alltrue([
       for rule in var.rules :
-      alltrue([
+      !can(rule.custom_request.headers) || alltrue([
         for header in rule.custom_request.headers :
         can(header.name) && can(header.value)
-        if can(rule.custom_request.headers)
       ])
       if can(rule.custom_request)
     ])
@@ -211,15 +219,21 @@ variable "rules" {
       alltrue([
         can(rule.custom_response.status_code),
         can(tonumber(rule.custom_response.status_code)),
-        alltrue([
-          for header in rule.custom_response.headers :
-          can(header.name) && can(header.value)
-          if can(rule.custom_response.headers)
-        ])
       ])
-      if can(rule.custom_response)
+      if can(rule.custom_response.status_code)
     ])
-    error_message = "The `rules[].custom_response` must have a numeric `status_code` and optional `headers` list with `name` and `value` fields."
+    error_message = "The `rules[].custom_response` must have a numeric `status_code`."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      alltrue([
+        for header in rule.custom_response.headers :
+        can(header.name) && can(header.value)
+      ])
+      if can(rule.custom_response.headers)
+    ])
+    error_message = "The `rules[].custom_response` must have `headers` as a list of objects with `name` and `value` fields."
   }
   validation {
     condition = alltrue([
@@ -256,8 +270,10 @@ variable "rules" {
       for rule in var.rules :
       alltrue([
         can(tostring(rule.observability.cloudwatch_metrics.metric_name)),
-        length(rule.observability.cloudwatch_metrics.metric_name) >= 1,
-        length(rule.observability.cloudwatch_metrics.metric_name) <= 128,
+        rule.observability.cloudwatch_metrics.metric_name == null || (
+          length(rule.observability.cloudwatch_metrics.metric_name) >= 1
+          && length(rule.observability.cloudwatch_metrics.metric_name) <= 128
+        )
       ])
       if can(rule.observability.cloudwatch_metrics.metric_name)
     ])
@@ -366,6 +382,19 @@ variable "resource_config" {
   default  = {}
   nullable = false
 
+  validation {
+    condition     = var.resource_config.cloudfront == null || var.is_global
+    error_message = "`resource_config.cloudfront` can be set only when `is_global` is `true`."
+  }
+  validation {
+    condition = !anytrue([
+      var.resource_config.api_gateway != null,
+      var.resource_config.app_runner_service != null,
+      var.resource_config.cognito_user_pool != null,
+      var.resource_config.verified_access_instance != null,
+    ]) || !var.is_global
+    error_message = "`resource_config.api_gateway`, `resource_config.app_runner_service`, `resource_config.cognito_user_pool`, and `resource_config.verified_access_instance` can be set only when `is_global` is `false`."
+  }
   validation {
     condition     = var.resource_config.api_gateway == null || contains(["KB_16", "KB_32", "KB_48", "KB_64"], var.resource_config.api_gateway.web_request_body_inspection_size_limit)
     error_message = "Valid values for `resource_config.api_gateway.web_request_body_inspection_size_limit` are `KB_16`, `KB_32`, `KB_48`, `KB_64`."

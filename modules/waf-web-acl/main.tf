@@ -92,11 +92,11 @@ resource "aws_wafv2_web_acl" "this" {
     for_each = var.rules
 
     content {
-      name     = rule.value.anme
+      name     = rule.value.name
       priority = rule.value.priority
 
       dynamic "rule_label" {
-        for_each = rule.value.labels
+        for_each = try(rule.value.labels, [])
         iterator = label
 
         content {
@@ -104,6 +104,304 @@ resource "aws_wafv2_web_acl" "this" {
         }
       }
 
+      ## Statement
+      statement {
+        # Simple statements
+        dynamic "ip_set_reference_statement" {
+          for_each = try(rule.value.statement.ip_set_reference, null) != null ? [rule.value.statement.ip_set_reference] : []
+          iterator = ip_set_reference
+
+          content {
+            arn = ip_set_reference.value.arn
+
+            dynamic "ip_set_forwarded_ip_config" {
+              for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+              iterator = header
+
+              content {
+                header_name       = try(header.value.name, "X-Forwarded-For")
+                position          = try(header.value.position, "FIRST")
+                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+              }
+            }
+          }
+        }
+
+
+        # Logical operators
+        dynamic "and_statement" {
+          for_each = try(rule.value.statement.and, null) != null ? [rule.value.statement.and] : []
+          iterator = and
+
+          content {
+            dynamic "statement" {
+              for_each = can(and.value.statements) ? and.value.statements : []
+
+              content {
+                # Nested simple statements
+                dynamic "ip_set_reference_statement" {
+                  for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                  content {
+                    arn = ip_set_reference_statement.value.arn
+                  }
+                }
+
+
+                # Nested logical operators (2nd level)
+                dynamic "and_statement" {
+                  for_each = can(statement.value.and) ? [statement.value.and] : []
+
+                  content {
+                    dynamic "statement" {
+                      for_each = can(and_statement.value.statements) ? and_statement.value.statements : []
+
+                      content {
+                        # 3rd level simple statements
+                        dynamic "ip_set_reference_statement" {
+                          for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                          content {
+                            arn = ip_set_reference_statement.value.arn
+                          }
+                        }
+
+                      }
+                    }
+                  }
+                }
+
+                dynamic "or_statement" {
+                  for_each = can(statement.value.or) ? [statement.value.or] : []
+
+                  content {
+                    dynamic "statement" {
+                      for_each = can(or_statement.value.statements) ? or_statement.value.statements : []
+
+                      content {
+                        # 3rd level simple statements
+                        dynamic "ip_set_reference_statement" {
+                          for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                          content {
+                            arn = ip_set_reference_statement.value.arn
+                          }
+                        }
+
+                      }
+                    }
+                  }
+                }
+
+                dynamic "not_statement" {
+                  for_each = can(statement.value.not) ? [statement.value.not] : []
+
+                  content {
+                    dynamic "statement" {
+                      for_each = can(not_statement.value.statement) ? [not_statement.value.statement] : []
+
+                      content {
+                        # 3rd level simple statements
+                        dynamic "ip_set_reference_statement" {
+                          for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                          content {
+                            arn = ip_set_reference_statement.value.arn
+                          }
+                        }
+
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        dynamic "or_statement" {
+          for_each = try(rule.value.statement.or, null) != null ? [rule.value.statement.or] : []
+          iterator = or
+
+          content {
+            dynamic "statement" {
+              for_each = can(or.value.statements) ? or.value.statements : []
+
+              content {
+                # Nested simple statements
+                dynamic "ip_set_reference_statement" {
+                  for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                  content {
+                    arn = ip_set_reference_statement.value.arn
+                  }
+                }
+
+
+                # Nested logical operators (2nd level)
+                dynamic "and_statement" {
+                  for_each = can(statement.value.and) ? [statement.value.and] : []
+
+                  content {
+                    dynamic "statement" {
+                      for_each = can(and_statement.value.statements) ? and_statement.value.statements : []
+
+                      content {
+                        # 3rd level simple statements
+                        dynamic "ip_set_reference_statement" {
+                          for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                          content {
+                            arn = ip_set_reference_statement.value.arn
+                          }
+                        }
+
+                      }
+                    }
+                  }
+                }
+
+                dynamic "or_statement" {
+                  for_each = can(statement.value.or) ? [statement.value.or] : []
+
+                  content {
+                    dynamic "statement" {
+                      for_each = can(or_statement.value.statements) ? or_statement.value.statements : []
+
+                      content {
+                        # 3rd level simple statements
+                        dynamic "ip_set_reference_statement" {
+                          for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                          content {
+                            arn = ip_set_reference_statement.value.arn
+                          }
+                        }
+
+                      }
+                    }
+                  }
+                }
+
+                dynamic "not_statement" {
+                  for_each = can(statement.value.not) ? [statement.value.not] : []
+
+                  content {
+                    dynamic "statement" {
+                      for_each = can(not_statement.value.statement) ? [not_statement.value.statement] : []
+
+                      content {
+                        # 3rd level simple statements
+                        dynamic "ip_set_reference_statement" {
+                          for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                          content {
+                            arn = ip_set_reference_statement.value.arn
+                          }
+                        }
+
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        dynamic "not_statement" {
+          for_each = try(rule.value.statement.not, null) != null ? [rule.value.statement.not] : []
+          iterator = not
+
+          content {
+            dynamic "statement" {
+              for_each = can(not.value.statement) ? [not.value.statement] : []
+
+              content {
+                # Nested simple statements
+                dynamic "ip_set_reference_statement" {
+                  for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                  content {
+                    arn = ip_set_reference_statement.value.arn
+                  }
+                }
+
+
+                # Nested logical operators (2nd level)
+                dynamic "and_statement" {
+                  for_each = can(statement.value.and) ? [statement.value.and] : []
+
+                  content {
+                    dynamic "statement" {
+                      for_each = can(and_statement.value.statements) ? and_statement.value.statements : []
+
+                      content {
+                        # 3rd level simple statements
+                        dynamic "ip_set_reference_statement" {
+                          for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                          content {
+                            arn = ip_set_reference_statement.value.arn
+                          }
+                        }
+
+                      }
+                    }
+                  }
+                }
+
+                dynamic "or_statement" {
+                  for_each = can(statement.value.or) ? [statement.value.or] : []
+
+                  content {
+                    dynamic "statement" {
+                      for_each = can(or_statement.value.statements) ? or_statement.value.statements : []
+
+                      content {
+                        # 3rd level simple statements
+                        dynamic "ip_set_reference_statement" {
+                          for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                          content {
+                            arn = ip_set_reference_statement.value.arn
+                          }
+                        }
+
+                      }
+                    }
+                  }
+                }
+
+                dynamic "not_statement" {
+                  for_each = can(statement.value.not) ? [statement.value.not] : []
+
+                  content {
+                    dynamic "statement" {
+                      for_each = can(not_statement.value.statement) ? [not_statement.value.statement] : []
+
+                      content {
+                        # 3rd level simple statements
+                        dynamic "ip_set_reference_statement" {
+                          for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
+
+                          content {
+                            arn = ip_set_reference_statement.value.arn
+                          }
+                        }
+
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+
+      ## Action
       dynamic "action" {
         for_each = [rule.value.action]
 
@@ -113,12 +411,12 @@ resource "aws_wafv2_web_acl" "this" {
 
             content {
               dynamic "custom_request_handling" {
-                for_each = rule.value.custom_request != null ? [rule.value.custom_request] : []
+                for_each = try(rule.value.custom_request, null) != null ? [rule.value.custom_request] : []
                 iterator = request
 
                 content {
                   dynamic "insert_header" {
-                    for_each = request.value.headers
+                    for_each = try(request.value.headers, [])
                     iterator = header
 
                     content {
@@ -132,18 +430,18 @@ resource "aws_wafv2_web_acl" "this" {
           }
 
           dynamic "block" {
-            for_each = rule.value.action.type == "BLOCK" ? ["go"] : []
+            for_each = action.value == "BLOCK" ? ["go"] : []
 
             content {
               dynamic "custom_response" {
-                for_each = rule.value.custom_response != null ? [rule.value.custom_response] : []
+                for_each = try(rule.value.custom_response, null) != null ? [rule.value.custom_response] : []
                 iterator = response
 
                 content {
                   response_code = response.value.status_code
 
                   dynamic "response_header" {
-                    for_each = response.value.headers
+                    for_each = try(response.value.headers, [])
                     iterator = header
 
                     content {
@@ -161,12 +459,12 @@ resource "aws_wafv2_web_acl" "this" {
 
             content {
               dynamic "custom_request_handling" {
-                for_each = rule.value.custom_request != null ? [rule.value.custom_request] : []
+                for_each = try(rule.value.custom_request, null) != null ? [rule.value.custom_request] : []
                 iterator = request
 
                 content {
                   dynamic "insert_header" {
-                    for_each = request.value.headers
+                    for_each = try(request.value.headers, [])
                     iterator = header
 
                     content {
@@ -184,12 +482,12 @@ resource "aws_wafv2_web_acl" "this" {
 
             content {
               dynamic "custom_request_handling" {
-                for_each = rule.value.custom_request != null ? [rule.value.custom_request] : []
+                for_each = try(rule.value.custom_request, null) != null ? [rule.value.custom_request] : []
                 iterator = request
 
                 content {
                   dynamic "insert_header" {
-                    for_each = request.value.headers
+                    for_each = try(request.value.headers, [])
                     iterator = header
 
                     content {
@@ -207,12 +505,12 @@ resource "aws_wafv2_web_acl" "this" {
 
             content {
               dynamic "custom_request_handling" {
-                for_each = rule.value.custom_request != null ? [rule.value.custom_request] : []
+                for_each = try(rule.value.custom_request, null) != null ? [rule.value.custom_request] : []
                 iterator = request
 
                 content {
                   dynamic "insert_header" {
-                    for_each = request.value.headers
+                    for_each = try(request.value.headers, [])
                     iterator = header
 
                     content {
@@ -230,7 +528,7 @@ resource "aws_wafv2_web_acl" "this" {
 
       ## Token Configuration
       dynamic "captcha_config" {
-        for_each = rule.value.captcha != null ? [rule.value.captcha] : []
+        for_each = try(rule.value.token_config.captcha, null) != null ? [rule.value.token_config.captcha] : []
         iterator = captcha
 
         content {
@@ -240,7 +538,7 @@ resource "aws_wafv2_web_acl" "this" {
         }
       }
       dynamic "challenge_config" {
-        for_each = rule.value.challenge != null ? [rule.value.challenge] : []
+        for_each = try(rule.value.token_config.challenge, null) != null ? [rule.value.token_config.challenge] : []
         iterator = challenge
 
         content {
@@ -253,10 +551,19 @@ resource "aws_wafv2_web_acl" "this" {
 
       ## Observability
       visibility_config {
-        cloudwatch_metrics_enabled = coalesce(rule.value.observability.cloudwatch_metrics.enabled, var.observability.cloudwatch_metrics.enabled)
-        metric_name                = coalesce(rule.value.observability.cloudwatch_metrics.metric_name, rule.value.name)
+        cloudwatch_metrics_enabled = (try(rule.value.observability.cloudwatch_metrics.enabled, null) != null
+          ? rule.value.observability.cloudwatch_metrics.enabled
+          : var.observability.cloudwatch_metrics.enabled
+        )
+        metric_name = (try(rule.value.observability.cloudwatch_metrics.metric_name, null) != null
+          ? rule.value.observability.cloudwatch_metrics.metric_name
+          : rule.value.name
+        )
 
-        sampled_requests_enabled = coalesce(rule.value.observability.request_sampling.enabled, var.observability.request_sampling.enabled)
+        sampled_requests_enabled = (try(rule.value.observability.request_sampling.enabled, null) != null
+          ? rule.value.observability.request_sampling.enabled
+          : var.observability.request_sampling.enabled
+        )
       }
     }
   }

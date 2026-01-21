@@ -64,6 +64,12 @@ output "custom_response" {
   )
 }
 
+output "rules" {
+  description = "The rules configured in the WAF Web ACL."
+  value       = var.rules
+
+}
+
 output "token_config" {
   description = "The configuration for tokens for the WAF Web ACL."
   value = {
