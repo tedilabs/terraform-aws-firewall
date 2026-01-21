@@ -90,6 +90,11 @@ variable "rules" {
           (Optional) `fallback_behavior` - Handling for requests that don't have a valid IP address in the specified header. Note that, if the specified header isn't present at all in the request, AWS WAF doesn't apply the rule to the request. Valid values are `MATCH` or `NO_MATCH`. Defaults to `NO_MATCH`.
             `MATCH` - Count and rate limit with other requests that are missing their IP address.
             `NO_MATCH` - Don't apply the rule to the request.
+      (Optional) `label_match` - A rule statement used to search web requests for labels that have been added to the request by rules that have already been evaluated. `label_match` as defined below.
+        (Required) `scope` - The scope of the label to search for. Valid values are `LABEL` or `NAMESPACE`.
+        (Required) `key` - The string to match against the label.
+          - If the `scope` indicates `LABEL`, then this specification must include the name and can include any number of preceding namespace specifications and prefix up to providing the fully qualified label name.
+          - If the `scope` indicates `NAMESPACE`, then this specification can include any number of contiguous namespace strings, and can include the entire label namespace prefix from the rule group or web ACL where the label originates.
     (Optional) `custom_request` - A custom request handling configuration. Only used with `ALLOW`, `CAPTCHA`, `CHALLENGE`, or `COUNT` actions. `custom_request` as defined below.
       (Optional) `headers` - A list of custom HTTP headers to insert into the request. Each items of `headers` block as defined below.
         (Required) `name` - The name of the custom HTTP header. AWS WAF prefixes this with `x-amzn-waf-`.

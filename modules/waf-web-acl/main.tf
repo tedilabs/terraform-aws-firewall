@@ -104,9 +104,8 @@ resource "aws_wafv2_web_acl" "this" {
         }
       }
 
-      ## Statement
       statement {
-        # Simple statements
+        ## Leaf Statements
         dynamic "ip_set_reference_statement" {
           for_each = try(rule.value.statement.ip_set_reference, null) != null ? [rule.value.statement.ip_set_reference] : []
           iterator = ip_set_reference
@@ -124,6 +123,16 @@ resource "aws_wafv2_web_acl" "this" {
                 fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
               }
             }
+          }
+        }
+
+        dynamic "label_match_statement" {
+          for_each = try(rule.value.statement.label_match, null) != null ? [rule.value.statement.label_match] : []
+          iterator = label_match
+
+          content {
+            scope = label_match.value.scope
+            key   = label_match.value.key
           }
         }
 
