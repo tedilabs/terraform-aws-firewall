@@ -106,6 +106,25 @@ resource "aws_wafv2_web_acl" "this" {
 
       statement {
         ## Leaf Statements
+        dynamic "asn_match_statement" {
+          for_each = try(rule.value.statement.asn_match, null) != null ? [rule.value.statement.asn_match] : []
+          iterator = asn_match
+
+          content {
+            asn_list = asn_match.value.asn_list
+
+            dynamic "forwarded_ip_config" {
+              for_each = try(asn_match.value.forwarded_ip_header.enabled, false) ? [asn_match.value.forwarded_ip_header] : []
+              iterator = header
+
+              content {
+                header_name       = try(header.value.name, "X-Forwarded-For")
+                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+              }
+            }
+          }
+        }
+
         dynamic "geo_match_statement" {
           for_each = try(rule.value.statement.geo_match, null) != null ? [rule.value.statement.geo_match] : []
           iterator = geo_match
