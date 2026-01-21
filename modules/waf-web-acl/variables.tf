@@ -81,6 +81,14 @@ variable "rules" {
     (Required) `action` - The action that AWS WAF should take on a web request when it matches the rule's statement. Valid values are `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, `COUNT`.
     (Required) `override_action` - The action to take on a web request when it matches the rule's statement. Valid values are `COUNT`, `NONE`.
     (Required) `statement` - A rule statement that defines the inspection criteria. Supports all AWS WAF statement types including nested logical operators (and_statement, or_statement, not_statement) with arbitrary depth. Each rule can have a completely different statement structure. See: https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statements.html
+      (Optional) `geo_match` - A rule statement that labels web requests by country and region and that matches against web requests based on country code. A geo match rule labels every request that it inspects regardless of whether it finds a match. `geo_match` as defined below.
+        (Required) `country_codes` - A set of two-character country codes, for example, `US` or `CN`. See https://docs.aws.amazon.com/waf/latest/developerguide/waf-geo-match-set-reference.html for the list of country codes.
+        (Optional) `forwarded_ip_header` - A configuration for inspecting IP addresses in an HTTP header instead of using the IP address that's reported by the web request origin. `forwarded_ip_header` as defined below.
+          (Optional) `enabled` - Whether to use the specified HTTP header for the IP address. May be inconsistent or modified. Defaults to `false`.
+          (Optional) `name` - The name of the HTTP header to use for the IP address. `X-Forwarded-For` (XFF) is the most commonly used header for the client and proxy IP addresses. Defaults to `X-Forwarded-For`.
+          (Optional) `fallback_behavior` - Handling for requests that don't have a valid IP address in the specified header. Note that, if the specified header isn't present at all in the request, AWS WAF doesn't apply the rule to the request. Valid values are `MATCH` or `NO_MATCH`. Defaults to `NO_MATCH`.
+            `MATCH` - Count and rate limit with other requests that are missing their IP address.
+            `NO_MATCH` - Don't apply the rule to the request.
       (Optional) `ip_set_reference` - A rule statement used to detect web requests coming from particular IP addresses or address ranges. `ip_set_reference` as defined below.
         (Required) `arn` - The ARN of the IP Set to reference.
         (Optional) `forwarded_ip_header` - A configuration for inspecting IP addresses in an HTTP header instead of using the IP address that's reported by the web request origin. `forwarded_ip_header` as defined below.
