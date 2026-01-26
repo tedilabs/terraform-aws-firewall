@@ -92,3 +92,16 @@ locals {
     }
   )
 }
+
+
+data "aws_route53_resolver_firewall_domain_list" "custom" {
+  count = var.type == "CUSTOM" ? 1 : 0
+
+  region = var.region
+
+  firewall_domain_list_id = one(aws_route53_resolver_firewall_domain_list.this[*].id)
+}
+
+locals {
+  domain_list_details = var.type == "CUSTOM" ? one(data.aws_route53_resolver_firewall_domain_list.custom) : one(data.aws_route53_resolver_firewall_domain_list.this)
+}

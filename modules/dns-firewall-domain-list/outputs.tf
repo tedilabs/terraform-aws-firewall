@@ -28,6 +28,21 @@ output "domain_count" {
   value       = local.domain_list.domain_count
 }
 
+output "status" {
+  description = "The status of the domain list."
+  value       = local.domain_list_details.status
+}
+
+output "created_at" {
+  description = "The date and time that the domain list was created, in Unix time format and Coordinated Universal Time (UTC)."
+  value       = local.domain_list_details.creation_time
+}
+
+output "updated_at" {
+  description = "The date and time that the domain list was last modified, in Unix time format and Coordinated Universal Time (UTC)."
+  value       = local.domain_list_details.modification_time
+}
+
 output "resource_group" {
   description = "The resource group created to manage resources in this module."
   value = merge(

@@ -36,6 +36,7 @@ Or reads following data sources if `var.type` is `MANAGED`.
 | ---- | ---- |
 | [aws_route53_resolver_firewall_domain_list.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_resolver_firewall_domain_list) | resource |
 | [aws_region.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+| [aws_route53_resolver_firewall_domain_list.custom](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_resolver_firewall_domain_list) | data source |
 | [aws_route53_resolver_firewall_domain_list.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_resolver_firewall_domain_list) | data source |
 
 ## Inputs
@@ -56,10 +57,13 @@ Or reads following data sources if `var.type` is `MANAGED`.
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_arn"></a> [arn](#output\_arn) | The ARN of the domain list. |
+| <a name="output_created_at"></a> [created\_at](#output\_created\_at) | The date and time that the domain list was created, in Unix time format and Coordinated Universal Time (UTC). |
 | <a name="output_domain_count"></a> [domain\_count](#output\_domain\_count) | The number of domains in the firewall domain list. Unlike `domains`, this is also populated if `type` is `MANAGED`. |
 | <a name="output_domains"></a> [domains](#output\_domains) | The set of domains from the firewall domain list. Always empty if `type` is `MANAGED`, because AWS does not disclose the domains of its managed domain lists. |
 | <a name="output_id"></a> [id](#output\_id) | The ID of the domain list. |
 | <a name="output_name"></a> [name](#output\_name) | The name of the domain list. |
 | <a name="output_region"></a> [region](#output\_region) | The AWS region this module resources resides in. |
 | <a name="output_resource_group"></a> [resource\_group](#output\_resource\_group) | The resource group created to manage resources in this module. |
+| <a name="output_status"></a> [status](#output\_status) | The status of the domain list. |
+| <a name="output_updated_at"></a> [updated\_at](#output\_updated\_at) | The date and time that the domain list was last modified, in Unix time format and Coordinated Universal Time (UTC). |
 <!-- END_TF_DOCS -->
