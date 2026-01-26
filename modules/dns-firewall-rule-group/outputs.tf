@@ -38,8 +38,9 @@ output "rules" {
   value = {
     for priority, rule in aws_route53_resolver_firewall_rule.this :
     priority => {
-      id   = rule.id
-      name = rule.name
+      id       = rule.id
+      priority = rule.priority
+      name     = rule.name
 
       domain_list = rule.firewall_domain_list_id
       threat_protection = (rule.dns_threat_protection != null
