@@ -10,7 +10,7 @@ provider "aws" {
 module "domain_list_blacklist" {
   source = "../../modules/dns-firewall-domain-list"
   # source  = "tedilabs/firewall/aws//modules/dns-firewall-domain-list"
-  # version = "~> 0.1.0"
+  # version = "~> 0.4.0"
 
   name = "example-blacklist"
   domains = [
@@ -27,7 +27,7 @@ module "domain_list_blacklist" {
 module "domain_list_whitelist" {
   source = "../../modules/dns-firewall-domain-list"
   # source  = "tedilabs/firewall/aws//modules/dns-firewall-domain-list"
-  # version = "~> 0.1.0"
+  # version = "~> 0.4.0"
 
   name = "example-whitelist"
   domains = [
@@ -50,7 +50,7 @@ module "domain_list_whitelist" {
 module "rule_group_1" {
   source = "../../modules/dns-firewall-rule-group"
   # source  = "tedilabs/firewall/aws//modules/dns-firewall-rule-group"
-  # version = "~> 0.1.0"
+  # version = "~> 0.4.0"
 
   name = "block-blacklist"
   rules = [
@@ -78,7 +78,7 @@ module "rule_group_1" {
 module "rule_group_2" {
   source = "../../modules/dns-firewall-rule-group"
   # source  = "tedilabs/firewall/aws//modules/dns-firewall-rule-group"
-  # version = "~> 0.1.0"
+  # version = "~> 0.4.0"
 
   name = "allow-whitelist"
   rules = [
@@ -103,7 +103,7 @@ module "rule_group_2" {
 module "policy" {
   source = "../../modules/fms-dns-firewall-policy"
   # source  = "tedilabs/firewall/aws//modules/fms-dns-firewall-policy"
-  # version = "~> 0.1.0"
+  # version = "~> 0.4.0"
 
   name = "dns-firewall-example"
 
