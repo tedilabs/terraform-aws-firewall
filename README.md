@@ -50,7 +50,7 @@ data "aws_vpc" "default" {
 
 module "domain_list" {
   source  = "tedilabs/firewall/aws//modules/dns-firewall-domain-list"
-  version = "~> 0.1.0"
+  version = "~> 0.4.0"
 
   name = "example"
   domains = [
@@ -71,7 +71,7 @@ module "domain_list" {
 
 module "rule_group" {
   source  = "tedilabs/firewall/aws//modules/dns-firewall-rule-group"
-  version = "~> 0.1.0"
+  version = "~> 0.4.0"
 
   name = "block-blacklist"
   rules = [
@@ -103,7 +103,7 @@ module "rule_group" {
 
 module "firewall" {
   source  = "tedilabs/firewall/aws//modules/dns-firewall"
-  version = "~> 0.1.0"
+  version = "~> 0.4.0"
 
   vpc_id            = data.aws_vpc.default.id
   fail_open_enabled = true
