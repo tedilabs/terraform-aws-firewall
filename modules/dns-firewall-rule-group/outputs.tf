@@ -29,14 +29,37 @@ output "name" {
 # }
 
 output "rules" {
-  description = "The rules of the firewall rule group."
+  description = <<EOF
+  The rules of the firewall rule group. Each value of `rules` is keyed by the priority of the rule as defined below.
+    `id` - The ID of the rule.
+    `name` - The name of the rule.
+    `domain_list` - The ID of the domain list which is used in the rule. Only set for standard rules.
+    `threat_protection` - The configuration of the DNS Firewall Advanced rule. Only set for DNS Firewall Advanced rules.
+    `query_type` - The DNS query type which the rule evaluates.
+    `dns_redirection_chain_inspection_mode` - How the rule evaluates the DNS redirection in the DNS redirection chain.
+    `action` - The action which DNS Firewall takes on a matched DNS query.
+    `action_parameters` - The parameters of the rule action.
+  EOF
   value = {
     for priority, rule in aws_route53_resolver_firewall_rule.this :
     priority => {
+      id   = rule.id
       name = rule.name
       # description = rule.description
       domain_list = rule.firewall_domain_list_id
-      action      = rule.action
+      threat_protection = (rule.dns_threat_protection != null
+        ? {
+          id                   = rule.firewall_threat_protection_id
+          type                 = rule.dns_threat_protection
+          confidence_threshold = rule.confidence_threshold
+        }
+        : null
+      )
+
+      query_type                            = rule.q_type
+      dns_redirection_chain_inspection_mode = trimsuffix(rule.firewall_domain_redirection_action, "_REDIRECTION_DOMAIN")
+
+      action = rule.action
       action_parameters = try({
         "BLOCK" = {
           response = rule.block_response

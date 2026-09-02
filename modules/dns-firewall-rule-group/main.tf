@@ -52,22 +52,28 @@ resource "aws_route53_resolver_firewall_rule" "this" {
   priority = each.key
   name     = each.value.name
   # description             = try(each.value.description, null)
+
   firewall_domain_list_id = each.value.domain_list
+  dns_threat_protection   = try(each.value.threat_protection.type, null)
+  confidence_threshold    = try(each.value.threat_protection.confidence_threshold, null)
+
+  q_type                             = each.value.query_type
+  firewall_domain_redirection_action = "${each.value.dns_redirection_chain_inspection_mode}_REDIRECTION_DOMAIN"
 
   action = each.value.action
   block_response = (each.value.action == "BLOCK"
     ? each.value.action_parameters.response
     : null
   )
-  block_override_domain = (try(each.value.action_parameters.response, null) == "OVERRIDE"
+  block_override_domain = (each.value.action_parameters.response == "OVERRIDE"
     ? each.value.action_parameters.override.value
     : null
   )
-  block_override_dns_type = (try(each.value.action_parameters.response, null) == "OVERRIDE"
+  block_override_dns_type = (each.value.action_parameters.response == "OVERRIDE"
     ? each.value.action_parameters.override.type
     : null
   )
-  block_override_ttl = (try(each.value.action_parameters.response, null) == "OVERRIDE"
+  block_override_ttl = (each.value.action_parameters.response == "OVERRIDE"
     ? each.value.action_parameters.override.ttl
     : null
   )
