@@ -148,6 +148,45 @@ variable "rules" {
   }
 }
 
+variable "profile_associations" {
+  description = <<EOF
+  (Optional) A list of configurations to associate Route53 Profiles with the firewall rule group. Sharing a rule group through a Route53 Profile applies it to every VPC which the Profile is associated with. Each block of `profile_associations` as defined below.
+    (Required) `name` - The name of the resource association with the Route53 profile.
+    (Required) `profile` - The ID of the Route53 profile to associate with.
+    (Required) `priority` - The setting that determines the processing order of the rule group among the rule groups which the Route53 profile applies to the VPC. DNS Firewall filters VPC traffic starting from the rule group with the lowest numeric priority setting. Valid values are between 100 and 9900.
+  EOF
+  type = list(object({
+    name     = string
+    profile  = string
+    priority = number
+  }))
+  default  = []
+  nullable = false
+
+  validation {
+    condition = alltrue([
+      for association in var.profile_associations :
+      alltrue([
+        can(regex("^[a-zA-Z0-9\\-_' ]+$", association.name)),
+        !can(regex("^[0-9]+$", association.name)),
+        length(association.name) <= 64,
+      ])
+    ])
+    error_message = "Each value of `association.name` from `profile_associations` should consist of letters, numbers, hyphens, underscores, apostrophes or spaces, should not consist of numbers only, and should have a maximum of 64 characters."
+  }
+
+  validation {
+    condition = alltrue([
+      for association in var.profile_associations :
+      alltrue([
+        association.priority >= 100,
+        association.priority <= 9900,
+      ])
+    ])
+    error_message = "Valid value for `association.priority` from `profile_associations` is between 100 and 9900."
+  }
+}
+
 variable "tags" {
   description = "(Optional) A map of tags to add to all resources."
   type        = map(string)
