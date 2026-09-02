@@ -1,3 +1,8 @@
+output "region" {
+  description = "The AWS region this module resources resides in."
+  value       = aws_route53_resolver_firewall_config.this.region
+}
+
 output "id" {
   description = "The ID of the firewall configuration."
   value       = aws_route53_resolver_firewall_config.this.id
