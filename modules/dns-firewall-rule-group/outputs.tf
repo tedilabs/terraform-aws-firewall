@@ -1,3 +1,8 @@
+output "region" {
+  description = "The AWS region this module resources resides in."
+  value       = aws_route53_resolver_firewall_rule_group.this.region
+}
+
 output "arn" {
   description = "The ARN of the firewall rule group."
   value       = aws_route53_resolver_firewall_rule_group.this.arn
