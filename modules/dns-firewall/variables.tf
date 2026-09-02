@@ -23,11 +23,13 @@ variable "rule_groups" {
   (Optional) A list of rule groups associated with the firewall. Each value of `rule_group` block as defined below.
     (Required) `id` - The ID of the firewall rule group.
     (Required) `priority` - The setting that determines the processing order of the rule group among the rule groups that you associate with the specified VPC. DNS Firewall filters VPC traffic starting from the rule group with the lowest numeric priority setting.
+    (Required) `name` - A name that lets you identify the association, to manage and use it.
     (Optional) `mutation_protection_enabled` - If enabled, this setting disallows modification or removal of the association, to help prevent against accidentally altering DNS firewall protections.
   EOF
   type = list(object({
     id       = string
     priority = number
+    name     = string
 
     mutation_protection_enabled = optional(bool, false)
   }))
