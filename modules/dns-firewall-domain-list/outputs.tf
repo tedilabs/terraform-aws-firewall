@@ -19,7 +19,7 @@ output "name" {
 }
 
 output "domains" {
-  description = "The list of domains from the firewall domain list."
+  description = "The set of domains from the firewall domain list."
   value       = aws_route53_resolver_firewall_domain_list.this.domains
 }
 
