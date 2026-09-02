@@ -20,6 +20,8 @@ locals {
 ###################################################
 
 resource "aws_route53_resolver_firewall_config" "this" {
+  region = var.region
+
   resource_id = var.vpc_id
 
   firewall_fail_open = var.fail_open_enabled ? "ENABLED" : "DISABLED"
@@ -35,6 +37,8 @@ resource "aws_route53_resolver_firewall_rule_group_association" "this" {
     for rule_group in var.rule_groups :
     rule_group.priority => rule_group
   }
+
+  region = var.region
 
   vpc_id = var.vpc_id
 
