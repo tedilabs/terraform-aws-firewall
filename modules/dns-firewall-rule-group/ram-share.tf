@@ -20,6 +20,8 @@ module "share" {
     share.name => share
   }
 
+  region = aws_route53_resolver_firewall_rule_group.this.region
+
   name = "${local.ram_share_name_prefix}.${each.key}"
 
   resources = {

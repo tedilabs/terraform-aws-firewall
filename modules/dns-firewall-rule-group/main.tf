@@ -20,6 +20,8 @@ locals {
 ###################################################
 
 resource "aws_route53_resolver_firewall_rule_group" "this" {
+  region = var.region
+
   name = var.name
   # description = var.description
 
@@ -42,6 +44,8 @@ resource "aws_route53_resolver_firewall_rule" "this" {
     for rule in var.rules :
     rule.priority => rule
   }
+
+  region = var.region
 
   firewall_rule_group_id = aws_route53_resolver_firewall_rule_group.this.id
 
