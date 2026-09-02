@@ -28,6 +28,8 @@ locals {
 
 # INFO: Not supported attributes
 resource "aws_fms_policy" "this" {
+  region = var.region
+
   name = var.name
 
   ## Policy

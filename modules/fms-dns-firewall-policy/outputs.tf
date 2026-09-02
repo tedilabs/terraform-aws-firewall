@@ -1,3 +1,8 @@
+output "region" {
+  description = "The AWS region this module resources resides in."
+  value       = aws_fms_policy.this.region
+}
+
 output "arn" {
   description = "The ARN of the AWS Firewall Manager Policy."
   value       = aws_fms_policy.this.arn
