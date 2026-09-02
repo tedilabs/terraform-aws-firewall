@@ -18,6 +18,16 @@ output "name" {
   value       = aws_fms_policy.this.name
 }
 
+output "description" {
+  description = "The description of the AWS Firewall Manager Policy."
+  value       = aws_fms_policy.this.description
+}
+
+output "update_token" {
+  description = "The unique identifier for each update to the AWS Firewall Manager Policy."
+  value       = aws_fms_policy.this.policy_update_token
+}
+
 output "policy" {
   description = "The configuration of this policy."
   value = {
@@ -30,9 +40,11 @@ output "scope" {
   description = "The configuration of this policy scope."
   value = {
     resource_types = var.resource_types
+    resource_sets  = aws_fms_policy.this.resource_set_ids
     resource_tags_filter = {
-      type = aws_fms_policy.this.exclude_resource_tags ? "BLACKLIST" : "WHITELIST"
-      tags = aws_fms_policy.this.resource_tags
+      type     = aws_fms_policy.this.exclude_resource_tags ? "BLACKLIST" : "WHITELIST"
+      operator = aws_fms_policy.this.resource_tag_logical_operator
+      tags     = aws_fms_policy.this.resource_tags
     }
     organization_filter = var.organization_filter
   }

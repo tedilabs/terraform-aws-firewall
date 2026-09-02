@@ -8,6 +8,14 @@ variable "region" {
 variable "name" {
   description = "(Required) The friendly name of the AWS Firewall Manager Policy."
   type        = string
+  nullable    = false
+}
+
+variable "description" {
+  description = "(Optional) The description of the AWS Firewall Manager Policy."
+  type        = string
+  default     = "Managed by Terraform."
+  nullable    = false
 }
 
 variable "pre_rule_groups" {
@@ -65,15 +73,24 @@ variable "resource_types" {
   nullable    = false
 }
 
+variable "resource_sets" {
+  description = "(Optional) A set of resource set IDs to apply protections by this policy. A resource set is a collection of AWS resources which are defined outside of this policy and can be shared across policies."
+  type        = set(string)
+  default     = []
+  nullable    = false
+}
+
 variable "resource_tags_filter" {
   description = <<EOF
   (Optional) A filter configuration to decide protections on resources based on the resource tags. `resourcee_tags_filter` block as defined below.
     (Optional) `type` - Whether to include or exclude resources that contain `tags` from protections by this policy. Valid values are `WHITELIST` and `BLACKLIST`.
+    (Optional) `operator` - How to combine multiple resource tags of `tags`. Valid values are `AND` and `OR`. `AND` requires a resource to have all the tags to be included or excluded, and `OR` requires a resource to have at least one of the tags. Defaults to `AND`.
     (Optional) `tags` - A map of resource tags to filter resources.
   EOF
   type = object({
-    type = optional(string, "WHITELIST")
-    tags = optional(map(string), {})
+    type     = optional(string, "WHITELIST")
+    operator = optional(string, "AND")
+    tags     = optional(map(string), {})
   })
   default  = {}
   nullable = false
@@ -81,6 +98,11 @@ variable "resource_tags_filter" {
   validation {
     condition     = contains(["WHITELIST", "BLACKLIST"], var.resource_tags_filter.type)
     error_message = "The `resource_tags_filter.type` should be one of `WHITELIST`, `BLACKLIST`."
+  }
+
+  validation {
+    condition     = contains(["AND", "OR"], var.resource_tags_filter.operator)
+    error_message = "The `resource_tags_filter.operator` should be one of `AND`, `OR`."
   }
 }
 

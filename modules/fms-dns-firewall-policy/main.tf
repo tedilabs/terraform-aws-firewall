@@ -30,7 +30,8 @@ locals {
 resource "aws_fms_policy" "this" {
   region = var.region
 
-  name = var.name
+  name        = var.name
+  description = var.description
 
   ## Policy
   security_service_policy_data {
@@ -56,10 +57,13 @@ resource "aws_fms_policy" "this" {
 
 
   ## Scope
-  resource_type         = length(var.resource_types) == 1 ? var.resource_types[0] : null
-  resource_type_list    = length(var.resource_types) > 1 ? var.resource_types : null
-  resource_tags         = var.resource_tags_filter.tags
-  exclude_resource_tags = var.resource_tags_filter.type == "BLACKLIST"
+  resource_type      = length(var.resource_types) == 1 ? var.resource_types[0] : null
+  resource_type_list = length(var.resource_types) > 1 ? var.resource_types : null
+  resource_set_ids   = var.resource_sets
+
+  resource_tags                 = var.resource_tags_filter.tags
+  exclude_resource_tags         = var.resource_tags_filter.type == "BLACKLIST"
+  resource_tag_logical_operator = var.resource_tags_filter.operator
 
   dynamic "include_map" {
     for_each = (var.organization_filter.type == "WHITELIST" && local.organization_filter_enabled) ? ["go"] : []
