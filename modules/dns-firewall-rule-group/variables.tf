@@ -11,19 +11,11 @@ variable "name" {
   nullable    = false
 }
 
-variable "description" {
-  description = "(Optional) The description of the firewall rule group."
-  type        = string
-  default     = "Managed by Terraform."
-  nullable    = false
-}
-
 variable "rules" {
   description = <<EOF
   (Optional) The rules that you define for the firewall rule group determine the filtering behavior. Each rule consists of a priority, an action and the criteria to match - either a domain list (standard rule) or a DNS threat protection (DNS Firewall Advanced rule). Each item of `rules` block as defined below.
     (Required) `priority` - Determine the processing order of the rule in the rule group. DNS Firewall processes the rules in a rule group by order of priority, starting from the lowest priority.
     (Required) `name` - A name that lets you identify the rule.
-    (Optional) `description` - The description of the rule.
     (Optional) `domain_list` - The ID of the domain list that you want to use in the rule. Required for standard rules. Conflicts with `threat_protection`.
     (Optional) `threat_protection` - The configuration for a DNS Firewall Advanced rule, which inspects DNS query patterns to detect threats instead of matching a domain list. Conflicts with `domain_list`. `threat_protection` block as defined below.
       (Required) `type` - The type of the DNS Firewall Advanced rule. Valid values are `DGA`, `DICTIONARY_DGA`, `DNS_TUNNELING`.
@@ -41,9 +33,8 @@ variable "rules" {
         (Required) `ttl` - The recommended amount of time, in seconds, for the DNS resolver or web browser to cache the provided override record. Minimum value of `0`. Maximum value of `604800`.
   EOF
   type = list(object({
-    priority    = number
-    name        = string
-    description = optional(string, "Managed by Terraform.")
+    priority = number
+    name     = string
 
     domain_list = optional(string)
     threat_protection = optional(object({
