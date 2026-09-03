@@ -35,15 +35,15 @@ resource "aws_route53_resolver_firewall_config" "this" {
 resource "aws_route53_resolver_firewall_rule_group_association" "this" {
   for_each = {
     for rule_group in var.rule_groups :
-    rule_group.priority => rule_group
+    rule_group.name => rule_group
   }
 
   region = var.region
 
   vpc_id = var.vpc_id
 
-  name                   = each.value.id
-  priority               = each.key
+  name                   = each.key
+  priority               = each.value.priority
   firewall_rule_group_id = each.value.id
 
   mutation_protection = each.value.mutation_protection_enabled ? "ENABLED" : "DISABLED"

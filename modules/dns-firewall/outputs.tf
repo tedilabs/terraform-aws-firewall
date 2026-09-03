@@ -24,15 +24,29 @@ output "fail_open_enabled" {
 }
 
 output "rule_groups" {
-  description = "The configuration of rule groups associated with the firewall."
+  description = <<EOF
+  The configuration of rule groups associated with the firewall. Each value of `rule_groups` is keyed by the priority of the rule group association as defined below.
+    `id` - The ID of the firewall rule group.
+    `name` - The name of the association.
+    `priority` - The processing order of the rule group among the rule groups associated with the VPC.
+    `mutation_protection_enabled` - Whether the modification or removal of the association is disallowed.
+    `association` - The information of the rule group association resource. `association` as defined below.
+      `arn` - The ARN of the firewall rule group association.
+      `id` - The ID of the firewall rule group association.
+  EOF
   value = {
-    for priority, rule_group in aws_route53_resolver_firewall_rule_group_association.this :
-    priority => {
+    for rule_group in aws_route53_resolver_firewall_rule_group_association.this :
+    rule_group.priority => {
       id       = rule_group.firewall_rule_group_id
       name     = rule_group.name
-      priority = priority
+      priority = rule_group.priority
 
       mutation_protection_enabled = rule_group.mutation_protection == "ENABLED"
+
+      association = {
+        arn = rule_group.arn
+        id  = rule_group.id
+      }
     }
   }
 }
