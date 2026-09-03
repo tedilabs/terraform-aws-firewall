@@ -78,7 +78,7 @@ output "rules" {
 
 output "profile_associations" {
   description = <<EOF
-  A list of Route53 Profile associations with the firewall rule group. Each value of `profile_associations` as defined below.
+  A list of Route53 Profile associations with the firewall rule group.
     `id` - The ID of the Route53 Profile resource association.
     `name` - The name of the Route53 Profile resource association.
     `owner_id` - The AWS Account ID of the owner of the Route53 Profile resource association.
