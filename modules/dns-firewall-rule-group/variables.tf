@@ -8,6 +8,7 @@ variable "region" {
 variable "name" {
   description = "(Required) Friendly name of the firewall rule group."
   type        = string
+  nullable    = false
 }
 
 variable "description" {
@@ -19,14 +20,21 @@ variable "description" {
 
 variable "rules" {
   description = <<EOF
-  (Optional) The rules that you define for the firewall rule group determine the filtering behavior. Each rule consists of a priority, a domain list, and action. Each item of `rules` block as defined below.
+  (Optional) The rules that you define for the firewall rule group determine the filtering behavior. Each rule consists of a priority, an action and the criteria to match - either a domain list (standard rule) or a DNS threat protection (DNS Firewall Advanced rule). Each item of `rules` block as defined below.
     (Required) `priority` - Determine the processing order of the rule in the rule group. DNS Firewall processes the rules in a rule group by order of priority, starting from the lowest priority.
     (Required) `name` - A name that lets you identify the rule.
     (Optional) `description` - The description of the rule.
-    (Required) `domain_list` - The ID of the domain list that you want to use in the rule.
-    (Required) `action` - The action that DNS Firewall should take on a DNS query when it matches one of the domains in the rule's domain list. Valid values are `ALLOW`, `BLOCK`, `ALERT`.
+    (Optional) `domain_list` - The ID of the domain list that you want to use in the rule. Required for standard rules. Conflicts with `threat_protection`.
+    (Optional) `threat_protection` - The configuration for a DNS Firewall Advanced rule, which inspects DNS query patterns to detect threats instead of matching a domain list. Conflicts with `domain_list`. `threat_protection` block as defined below.
+      (Required) `type` - The type of the DNS Firewall Advanced rule. Valid values are `DGA`, `DICTIONARY_DGA`, `DNS_TUNNELING`.
+      (Required) `confidence_threshold` - The confidence threshold of the DNS Firewall Advanced rule. A lower threshold detects more threats with more false positives. Valid values are `LOW`, `MEDIUM`, `HIGH`.
+    (Optional) `query_type` - The DNS query type that you want the rule to evaluate. For example, `A`, `AAAA`, `CNAME` or the numeric representation of the DNS record type. If not provided, the rule evaluates all the query types.
+    (Optional) `dns_redirection_chain_inspection_mode` - How the rule evaluates the DNS redirection in the DNS redirection chain, such as CNAME or DNAME. Valid values are `INSPECT` and `TRUST`. Defaults to `INSPECT`. Only applied to standard rules.
+      `INSPECT` - Inspects all the domains in the redirection chain. The individual domains in the redirection chain must be added to the domain list.
+      `TRUST` - Inspects only the first domain in the redirection chain. You don't need to add the subsequent domains in the redirection chain to the domain list.
+    (Required) `action` - The action that DNS Firewall should take on a DNS query when it matches one of the domains in the rule's domain list, or a threat in a DNS Firewall Advanced rule. Valid values are `ALLOW`, `BLOCK`, `ALERT`. `ALLOW` is not valid for DNS Firewall Advanced rules.
     (Optional) `action_parameters` - The configuration block for the parameters of the rule action. Only required with `BLOCK` action. `action_parameters` block as defined below.
-      (Required) `response` - The way that you want DNS Firewall to block the request. Valid values are `NODATA`, `NXDOMAIN`, `OVERRIDE`. `NODATA` indicates that this query was successful, but there is no response available for the query. `NXDOMAIN` indicates that the domain name that's in the query doesn't exist. `OVERRIDE` provides a custom override response to the query.
+      (Required) `response` - The way that you want DNS Firewall to block the request. Valid values are `NODATA`, `NXDOMAIN`, `OVERRIDE`. `NODATA` indicates that this query was successful, but there is no response available for the query. `NXDOMAIN` indicates that the domain name that's in the query doesn't exist. `OVERRIDE` provides a custom override response to the query. Defaults to `NODATA`.
       (Optional) `override` - The configuration for a custom override response to the query. Only required with `OVERRIDE` block response.
         (Required) `type` - The DNS record's type. This determines the format of the record value that you provided in BlockOverrideDomain. Value values are `CNAME`.
         (Required) `value` - The custom DNS record to send back in response to the query.
@@ -36,17 +44,25 @@ variable "rules" {
     priority    = number
     name        = string
     description = optional(string, "Managed by Terraform.")
-    domain_list = string
+
+    domain_list = optional(string)
+    threat_protection = optional(object({
+      type                 = string
+      confidence_threshold = string
+    }))
+
+    query_type                            = optional(string)
+    dns_redirection_chain_inspection_mode = optional(string, "INSPECT")
 
     action = string
     action_parameters = optional(object({
-      response = optional(string)
+      response = optional(string, "NODATA")
       override = optional(object({
         type  = string
         value = string
-        ttl   = number
+        ttl   = optional(number, 0)
       }))
-    }))
+    }), {})
   }))
   default  = []
   nullable = false
@@ -65,6 +81,40 @@ variable "rules" {
   validation {
     condition = alltrue([
       for rule in var.rules :
+      (rule.domain_list != null) != (rule.threat_protection != null)
+    ])
+    error_message = "Each rule of `rules` should have exactly one of `rule.domain_list` or `rule.threat_protection`."
+  }
+
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      contains(["DGA", "DICTIONARY_DGA", "DNS_TUNNELING"], rule.threat_protection.type)
+      if rule.threat_protection != null
+    ])
+    error_message = "Valid values for `rule.threat_protection.type` from `rules` are `DGA`, `DICTIONARY_DGA`, `DNS_TUNNELING`."
+  }
+
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      contains(["LOW", "MEDIUM", "HIGH"], rule.threat_protection.confidence_threshold)
+      if rule.threat_protection != null
+    ])
+    error_message = "Valid values for `rule.threat_protection.confidence_threshold` from `rules` are `LOW`, `MEDIUM`, `HIGH`."
+  }
+
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      contains(["INSPECT", "TRUST"], rule.dns_redirection_chain_inspection_mode)
+    ])
+    error_message = "Valid values for `rule.dns_redirection_chain_inspection_mode` from `rules` are `INSPECT`, `TRUST`."
+  }
+
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
       contains(["ALLOW", "BLOCK", "ALERT"], rule.action)
     ])
     error_message = "Valid values for `rule.action` from `rules` are `ALLOW`, `BLOCK`, `ALERT`."
@@ -73,7 +123,16 @@ variable "rules" {
   validation {
     condition = alltrue([
       for rule in var.rules :
-      contains(["NODATA", "NXDOMAIN", "OVERRIDE"], try(rule.action_parameters.response, null))
+      rule.action != "ALLOW"
+      if rule.threat_protection != null
+    ])
+    error_message = "Valid values for `rule.action` from `rules` are `BLOCK`, `ALERT` if `rule.threat_protection` is provided."
+  }
+
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      contains(["NODATA", "NXDOMAIN", "OVERRIDE"], rule.action_parameters.response)
       if rule.action == "BLOCK"
     ])
     error_message = "Valid values for `rule.action_parameters.response` from `rules` are `NODATA`, `NXDOMAIN`, `OVERRIDE`."
@@ -82,13 +141,10 @@ variable "rules" {
   validation {
     condition = alltrue([
       for rule in var.rules :
-      alltrue([
-        for key in ["type", "value", "ttl"] :
-        contains(try(keys(rule.action_parameters.override), []), key)
-      ])
-      if try(rule.action_parameters.response, null) == "OVERRIDE"
+      rule.action_parameters.override != null
+      if rule.action_parameters.response == "OVERRIDE"
     ])
-    error_message = "`rule.action_parameters.override` from `rules` should have `type`, `value`, `ttl`."
+    error_message = "`rule.action_parameters.override` from `rules` must be provided when `rule.action_parameters.response` is `OVERRIDE`."
   }
 }
 
