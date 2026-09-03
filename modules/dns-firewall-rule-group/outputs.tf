@@ -76,6 +76,40 @@ output "rules" {
   }
 }
 
+output "profile_associations" {
+  description = <<EOF
+  A list of Route53 Profile associations with the firewall rule group.
+    `id` - The ID of the Route53 Profile resource association.
+    `name` - The name of the Route53 Profile resource association.
+    `owner_id` - The AWS Account ID of the owner of the Route53 Profile resource association.
+    `status` - The status of the Route53 Profile resource association.
+    `profile` - The information of the associated Route53 Profile. `profile` as defined below.
+      `id` - The ID of the Route53 Profile.
+      `region` - The AWS region which the Route53 Profile resource association resides in.
+    `resource` - The information of the associated resource. `resource` as defined below.
+      `type` - The type of the associated resource.
+      `arn` - The ARN of the associated resource.
+      `properties` - The properties of the associated resource.
+  EOF
+  value = [
+    for association in aws_route53profiles_resource_association.this : {
+      id       = association.id
+      name     = association.name
+      owner_id = association.owner_id
+      status   = association.status
+      profile = {
+        id     = association.profile_id
+        region = association.region
+      }
+      resource = {
+        type       = association.resource_type
+        arn        = association.resource_arn
+        properties = association.resource_properties
+      }
+    }
+  ]
+}
+
 output "sharing" {
   description = <<EOF
   The configuration for sharing of the Route53 Resolver DNS Firewall Rule Group.
