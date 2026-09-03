@@ -23,11 +23,6 @@ output "name" {
   value       = aws_route53_resolver_firewall_rule_group.this.name
 }
 
-# output "description" {
-#   description = "The description of the firewall rule group."
-#   value       = aws_route53_resolver_firewall_rule_group.this.description
-# }
-
 output "rules" {
   description = <<EOF
   The rules of the firewall rule group. Each value of `rules` is keyed by the priority of the rule as defined below.
@@ -45,7 +40,7 @@ output "rules" {
     priority => {
       id   = rule.id
       name = rule.name
-      # description = rule.description
+
       domain_list = rule.firewall_domain_list_id
       threat_protection = (rule.dns_threat_protection != null
         ? {

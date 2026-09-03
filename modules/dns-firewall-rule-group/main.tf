@@ -23,7 +23,6 @@ resource "aws_route53_resolver_firewall_rule_group" "this" {
   region = var.region
 
   name = var.name
-  # description = var.description
 
   tags = merge(
     {
@@ -51,7 +50,6 @@ resource "aws_route53_resolver_firewall_rule" "this" {
 
   priority = each.key
   name     = each.value.name
-  # description             = try(each.value.description, null)
 
   firewall_domain_list_id = each.value.domain_list
   dns_threat_protection   = try(each.value.threat_protection.type, null)
