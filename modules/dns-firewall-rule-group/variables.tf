@@ -167,18 +167,6 @@ variable "profile_associations" {
     condition = alltrue([
       for association in var.profile_associations :
       alltrue([
-        can(regex("^[a-zA-Z0-9\\-_' ]+$", association.name)),
-        !can(regex("^[0-9]+$", association.name)),
-        length(association.name) <= 64,
-      ])
-    ])
-    error_message = "Each value of `association.name` from `profile_associations` should consist of letters, numbers, hyphens, underscores, apostrophes or spaces, should not consist of numbers only, and should have a maximum of 64 characters."
-  }
-
-  validation {
-    condition = alltrue([
-      for association in var.profile_associations :
-      alltrue([
         association.priority >= 100,
         association.priority <= 9900,
       ])
