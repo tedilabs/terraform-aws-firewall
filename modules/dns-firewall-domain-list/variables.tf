@@ -5,14 +5,30 @@ variable "region" {
   nullable    = true
 }
 
+variable "type" {
+  description = <<EOF
+  (Optional) The type of the domain list. Valid values are `CUSTOM` and `MANAGED`. Defaults to `CUSTOM`.
+    `CUSTOM` - Create and manage a domain list with the domains provided by `domains`.
+    `MANAGED` - Look up an AWS managed domain list by `name`. No resource is created, and `domains` is not applicable because AWS owns the domains of a managed domain list.
+  EOF
+  type        = string
+  default     = "CUSTOM"
+  nullable    = false
+
+  validation {
+    condition     = contains(["CUSTOM", "MANAGED"], var.type)
+    error_message = "Valid values for `type` are `CUSTOM`, `MANAGED`."
+  }
+}
+
 variable "name" {
-  description = "(Required) A name to identify the domain list."
+  description = "(Required) A name to identify the domain list. If `type` is `MANAGED`, this should be the name of an AWS managed domain list like `AWSManagedDomainsMalwareDomainList`, and the module resolves its region-specific ID from `managed-domain-lists.yaml`."
   type        = string
   nullable    = false
 }
 
 variable "domains" {
-  description = "(Optional) A set of domains for the firewall domain list."
+  description = "(Optional) A set of domains for the firewall domain list. Only applicable if `type` is `CUSTOM`."
   type        = set(string)
   default     = []
   nullable    = false
@@ -23,6 +39,11 @@ variable "domains" {
       substr(domain, -1, 1) == "."
     ])
     error_message = "Each domain should have a dot at the end by following the definition of FQDN(Fully Qualified Domain Name)."
+  }
+
+  validation {
+    condition     = var.type == "CUSTOM" || length(var.domains) == 0
+    error_message = "The `domains` should be empty if `type` is `MANAGED`. AWS owns the domains of a managed domain list."
   }
 }
 
