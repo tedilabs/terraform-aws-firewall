@@ -8,11 +8,12 @@ variable "region" {
 variable "name" {
   description = "(Required) A name to identify the domain list."
   type        = string
+  nullable    = false
 }
 
 variable "domains" {
-  description = "(Optional) A list of domains for the firewall domain list."
-  type        = list(string)
+  description = "(Optional) A set of domains for the firewall domain list."
+  type        = set(string)
   default     = []
   nullable    = false
 
