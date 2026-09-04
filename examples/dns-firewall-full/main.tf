@@ -84,6 +84,7 @@ module "firewall" {
   rule_groups = [
     {
       priority = 200
+      name     = "block-blacklist"
       id       = module.rule_group.id
     },
   ]
