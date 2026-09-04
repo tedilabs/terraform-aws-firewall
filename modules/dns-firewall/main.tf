@@ -14,11 +14,6 @@ locals {
   } : {}
 }
 
-locals {
-  is_vpc_target     = var.target.type == "VPC"
-  is_profile_target = var.target.type == "ROUTE53_PROFILE"
-}
-
 data "aws_region" "this" {
   region = var.region
 }
@@ -29,7 +24,7 @@ data "aws_region" "this" {
 ###################################################
 
 resource "aws_route53_resolver_firewall_config" "this" {
-  count = local.is_vpc_target ? 1 : 0
+  count = var.target.type == "VPC" ? 1 : 0
 
   region = var.region
 
@@ -47,7 +42,7 @@ resource "aws_route53_resolver_firewall_rule_group_association" "this" {
   for_each = {
     for rule_group in var.rule_groups :
     rule_group.name => rule_group
-    if local.is_vpc_target
+    if var.target.type == "VPC"
   }
 
   region = var.region
@@ -78,7 +73,7 @@ data "aws_route53_resolver_firewall_rule_group" "this" {
   for_each = {
     for rule_group in var.rule_groups :
     rule_group.name => rule_group
-    if local.is_profile_target
+    if var.target.type == "ROUTE53_PROFILE"
   }
 
   region = var.region
@@ -90,7 +85,7 @@ resource "aws_route53profiles_resource_association" "this" {
   for_each = {
     for rule_group in var.rule_groups :
     rule_group.name => rule_group
-    if local.is_profile_target
+    if var.target.type == "ROUTE53_PROFILE"
   }
 
   region = var.region

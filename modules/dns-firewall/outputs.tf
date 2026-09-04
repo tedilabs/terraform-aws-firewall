@@ -17,7 +17,7 @@ output "target" {
 
 output "fail_open_enabled" {
   description = "Whether the Route53 Resolver handles queries during failures. Only available when `target.type` is `VPC`."
-  value = (local.is_vpc_target
+  value = (var.target.type == "VPC"
     ? one(aws_route53_resolver_firewall_config.this[*].firewall_fail_open) == "ENABLED"
     : null
   )
@@ -43,7 +43,7 @@ output "rule_groups" {
 
       mutation_protection_enabled = rule_group.mutation_protection_enabled
 
-      association = (local.is_vpc_target
+      association = (var.target.type == "VPC"
         ? {
           arn = aws_route53_resolver_firewall_rule_group_association.this[rule_group.name].arn
           id  = aws_route53_resolver_firewall_rule_group_association.this[rule_group.name].id

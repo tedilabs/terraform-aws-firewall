@@ -1,5 +1,5 @@
 locals {
-  resource_group_enabled = local.is_vpc_target && var.resource_group.enabled && var.module_tags_enabled
+  resource_group_enabled = var.target.type == "VPC" && var.resource_group.enabled && var.module_tags_enabled
 
   resource_group_name = (var.resource_group.name != ""
     ? var.resource_group.name
