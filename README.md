@@ -127,6 +127,8 @@ module "firewall" {
 
 ### Route53 DNS Firewall
 
+- [Route53 DNS Firewall with AWS Managed Domain Lists](./examples/dns-firewall-managed-lists)
+- [Route53 DNS Firewall with Advanced Threat Protection](./examples/dns-firewall-advanced)
 - [Route53 DNS Firewall Full Version](./examples/dns-firewall-full)
 
 
