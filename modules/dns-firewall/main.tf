@@ -3,7 +3,7 @@ locals {
     package = "terraform-aws-firewall"
     version = trimspace(file("${path.module}/../../VERSION"))
     module  = basename(path.module)
-    name    = var.vpc_id
+    name    = var.target.id
   }
   module_tags = var.module_tags_enabled ? {
     "module.terraform.io/package"   = local.metadata.package
@@ -14,33 +14,45 @@ locals {
   } : {}
 }
 
+locals {
+  is_vpc_target     = var.target.type == "VPC"
+  is_profile_target = var.target.type == "ROUTE53_PROFILE"
+}
+
+data "aws_region" "this" {
+  region = var.region
+}
+
 
 ###################################################
-# DNS Firewall
+# DNS Firewall Configuration for VPC
 ###################################################
 
 resource "aws_route53_resolver_firewall_config" "this" {
+  count = local.is_vpc_target ? 1 : 0
+
   region = var.region
 
-  resource_id = var.vpc_id
+  resource_id = var.target.id
 
   firewall_fail_open = var.fail_open_enabled ? "ENABLED" : "DISABLED"
 }
 
 
 ###################################################
-# Rule Group Associations for DNS Firewall
+# Rule Group Associations with VPC
 ###################################################
 
 resource "aws_route53_resolver_firewall_rule_group_association" "this" {
   for_each = {
     for rule_group in var.rule_groups :
     rule_group.name => rule_group
+    if local.is_vpc_target
   }
 
   region = var.region
 
-  vpc_id = var.vpc_id
+  vpc_id = var.target.id
 
   name                   = each.key
   priority               = each.value.priority
@@ -55,4 +67,39 @@ resource "aws_route53_resolver_firewall_rule_group_association" "this" {
     local.module_tags,
     var.tags,
   )
+}
+
+
+###################################################
+# Rule Group Associations with Route53 Profile
+###################################################
+
+data "aws_route53_resolver_firewall_rule_group" "this" {
+  for_each = {
+    for rule_group in var.rule_groups :
+    rule_group.name => rule_group
+    if local.is_profile_target
+  }
+
+  region = var.region
+
+  firewall_rule_group_id = each.value.id
+}
+
+resource "aws_route53profiles_resource_association" "this" {
+  for_each = {
+    for rule_group in var.rule_groups :
+    rule_group.name => rule_group
+    if local.is_profile_target
+  }
+
+  region = var.region
+
+  profile_id = var.target.id
+
+  name         = each.key
+  resource_arn = data.aws_route53_resolver_firewall_rule_group.this[each.key].arn
+  resource_properties = jsonencode({
+    priority = each.value.priority
+  })
 }

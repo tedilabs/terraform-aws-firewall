@@ -5,26 +5,43 @@ variable "region" {
   nullable    = true
 }
 
-variable "vpc_id" {
-  description = "(Required) The ID of the VPC which the firewall belongs to."
-  type        = string
-  nullable    = false
+variable "target" {
+  description = <<EOF
+  (Required) The configuration of the target to associate the DNS Firewall rule groups with. `target` as defined below.
+    (Required) `type` - The type of the target. Valid values are `VPC` and `ROUTE53_PROFILE`. Associating rule groups with a Route53 Profile applies them to every VPC which the Profile is associated with.
+    (Required) `id` - The ID of the target. The ID of the VPC if `type` is `VPC`, or the ID of the Route53 Profile if `type` is `ROUTE53_PROFILE`.
+  EOF
+  type = object({
+    type = string
+    id   = string
+  })
+  nullable = false
+
+  validation {
+    condition     = contains(["VPC", "ROUTE53_PROFILE"], var.target.type)
+    error_message = "Valid values for `target.type` are `VPC` and `ROUTE53_PROFILE`."
+  }
 }
 
 variable "fail_open_enabled" {
-  description = "(Optional) Determines how Route 53 Resolver handles queries during failures, for example when all traffic that is sent to DNS Firewall fails to receive a reply. By default, fail open is disabled, which means the failure mode is closed. This approach favors security over availability. DNS Firewall blocks queries that it is unable to evaluate properly. If you enable this option, the failure mode is open. This approach favors availability over security. DNS Firewall allows queries to proceed if it is unable to properly evaluate them."
+  description = "(Optional) Determines how Route 53 Resolver handles queries during failures, for example when all traffic that is sent to DNS Firewall fails to receive a reply. By default, fail open is disabled, which means the failure mode is closed. This approach favors security over availability. DNS Firewall blocks queries that it is unable to evaluate properly. If you enable this option, the failure mode is open. This approach favors availability over security. DNS Firewall allows queries to proceed if it is unable to properly evaluate them. Only supported when `target.type` is `VPC`."
   type        = bool
   default     = false
   nullable    = false
+
+  validation {
+    condition     = var.target.type == "VPC" || !var.fail_open_enabled
+    error_message = "`fail_open_enabled` is only supported when `target.type` is `VPC`."
+  }
 }
 
 variable "rule_groups" {
   description = <<EOF
-  (Optional) A list of rule groups associated with the firewall. Each value of `rule_group` block as defined below.
+  (Optional) A list of rule groups associated with the target. Each value of `rule_group` block as defined below.
     (Required) `id` - The ID of the firewall rule group.
-    (Required) `priority` - The setting that determines the processing order of the rule group among the rule groups that you associate with the specified VPC. DNS Firewall filters VPC traffic starting from the rule group with the lowest numeric priority setting.
+    (Required) `priority` - The setting that determines the processing order of the rule group among the rule groups that you associate with the target. DNS Firewall filters VPC traffic starting from the rule group with the lowest numeric priority setting.
     (Required) `name` - A name that lets you identify the association, to manage and use it.
-    (Optional) `mutation_protection_enabled` - If enabled, this setting disallows modification or removal of the association, to help prevent against accidentally altering DNS firewall protections.
+    (Optional) `mutation_protection_enabled` - If enabled, this setting disallows modification or removal of the association, to help prevent against accidentally altering DNS firewall protections. Only supported when `target.type` is `VPC`.
   EOF
   type = list(object({
     id       = string
@@ -45,6 +62,14 @@ variable "rule_groups" {
       ])
     ])
     error_message = "Not valid parameters for `rule_groups`."
+  }
+
+  validation {
+    condition = var.target.type == "VPC" || alltrue([
+      for rule_group in var.rule_groups :
+      !rule_group.mutation_protection_enabled
+    ])
+    error_message = "`mutation_protection_enabled` of `rule_groups` is only supported when `target.type` is `VPC`."
   }
 }
 
@@ -70,7 +95,7 @@ variable "module_tags_enabled" {
 variable "resource_group" {
   description = <<EOF
   (Optional) A configurations of Resource Group for this module. `resource_group` as defined below.
-    (Optional) `enabled` - Whether to create Resource Group to find and group AWS resources which are created by this module. Defaults to `true`.
+    (Optional) `enabled` - Whether to create Resource Group to find and group AWS resources which are created by this module. Defaults to `true`. Only supported when `target.type` is `VPC`, since associations with a Route53 Profile do not support tags.
     (Optional) `name` - The name of Resource Group. A Resource Group name can have a maximum of 127 characters, including letters, numbers, hyphens, dots, and underscores. The name cannot start with `AWS` or `aws`. If not provided, a name will be generated using the module name and instance name.
     (Optional) `description` - The description of Resource Group. Defaults to `Managed by Terraform.`.
   EOF
