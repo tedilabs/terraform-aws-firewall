@@ -105,11 +105,15 @@ module "firewall" {
   source  = "tedilabs/firewall/aws//modules/dns-firewall"
   version = "~> 0.4.0"
 
-  vpc_id            = data.aws_vpc.default.id
+  target = {
+    type = "VPC"
+    id   = data.aws_vpc.default.id
+  }
   fail_open_enabled = true
 
   rule_groups = [
     {
+      name     = "block-blacklist"
       priority = 200
       id       = module.rule_group.id
     },
