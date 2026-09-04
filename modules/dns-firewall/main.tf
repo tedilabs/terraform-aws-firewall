@@ -30,7 +30,7 @@ resource "aws_route53_resolver_firewall_config" "this" {
 
   resource_id = var.target.id
 
-  firewall_fail_open = var.fail_open_enabled ? "ENABLED" : "DISABLED"
+  firewall_fail_open = (var.target.type == "VPC" && var.fail_open_enabled) ? "ENABLED" : "DISABLED"
 }
 
 
@@ -53,7 +53,7 @@ resource "aws_route53_resolver_firewall_rule_group_association" "this" {
   priority               = each.value.priority
   firewall_rule_group_id = each.value.id
 
-  mutation_protection = each.value.mutation_protection_enabled ? "ENABLED" : "DISABLED"
+  mutation_protection = (var.target.type == "VPC" && each.value.mutation_protection_enabled) ? "ENABLED" : "DISABLED"
 
   tags = merge(
     {

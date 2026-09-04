@@ -24,15 +24,10 @@ variable "target" {
 }
 
 variable "fail_open_enabled" {
-  description = "(Optional) Determines how Route 53 Resolver handles queries during failures, for example when all traffic that is sent to DNS Firewall fails to receive a reply. By default, fail open is disabled, which means the failure mode is closed. This approach favors security over availability. DNS Firewall blocks queries that it is unable to evaluate properly. If you enable this option, the failure mode is open. This approach favors availability over security. DNS Firewall allows queries to proceed if it is unable to properly evaluate them. Only supported when `target.type` is `VPC`."
+  description = "(Optional) Determines how Route 53 Resolver handles queries during failures, for example when all traffic that is sent to DNS Firewall fails to receive a reply. By default, fail open is disabled, which means the failure mode is closed. This approach favors security over availability. DNS Firewall blocks queries that it is unable to evaluate properly. If you enable this option, the failure mode is open. This approach favors availability over security. DNS Firewall allows queries to proceed if it is unable to properly evaluate them. Only applied when `target.type` is `VPC`, ignored otherwise."
   type        = bool
   default     = false
   nullable    = false
-
-  validation {
-    condition     = var.target.type == "VPC" || !var.fail_open_enabled
-    error_message = "`fail_open_enabled` is only supported when `target.type` is `VPC`."
-  }
 }
 
 variable "rule_groups" {
@@ -41,7 +36,7 @@ variable "rule_groups" {
     (Required) `id` - The ID of the firewall rule group.
     (Required) `priority` - The setting that determines the processing order of the rule group among the rule groups that you associate with the target. DNS Firewall filters VPC traffic starting from the rule group with the lowest numeric priority setting.
     (Required) `name` - A name that lets you identify the association, to manage and use it.
-    (Optional) `mutation_protection_enabled` - If enabled, this setting disallows modification or removal of the association, to help prevent against accidentally altering DNS firewall protections. Only supported when `target.type` is `VPC`.
+    (Optional) `mutation_protection_enabled` - If enabled, this setting disallows modification or removal of the association, to help prevent against accidentally altering DNS firewall protections. Only applied when `target.type` is `VPC`, ignored otherwise.
   EOF
   type = list(object({
     id       = string
@@ -62,14 +57,6 @@ variable "rule_groups" {
       ])
     ])
     error_message = "Not valid parameters for `rule_groups`."
-  }
-
-  validation {
-    condition = var.target.type == "VPC" || alltrue([
-      for rule_group in var.rule_groups :
-      !rule_group.mutation_protection_enabled
-    ])
-    error_message = "`mutation_protection_enabled` of `rule_groups` is only supported when `target.type` is `VPC`."
   }
 }
 

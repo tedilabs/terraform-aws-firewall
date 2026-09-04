@@ -41,7 +41,7 @@ output "rule_groups" {
       name     = rule_group.name
       priority = rule_group.priority
 
-      mutation_protection_enabled = rule_group.mutation_protection_enabled
+      mutation_protection_enabled = var.target.type == "VPC" && rule_group.mutation_protection_enabled
 
       association = (var.target.type == "VPC"
         ? {
