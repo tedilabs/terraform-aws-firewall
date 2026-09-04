@@ -113,7 +113,10 @@ module "firewall" {
   # source  = "tedilabs/firewall/aws//modules/dns-firewall"
   # version = "~> 0.4.0"
 
-  vpc_id            = data.aws_vpc.default.id
+  target = {
+    type = "VPC"
+    id   = data.aws_vpc.default.id
+  }
   fail_open_enabled = false
 
   # The VPC evaluates the associated rule groups from the lowest priority, so
