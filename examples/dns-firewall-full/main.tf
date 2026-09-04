@@ -88,7 +88,6 @@ module "firewall" {
     {
       name     = "block-blacklist"
       priority = 200
-      name     = "block-blacklist"
       id       = module.rule_group.id
     },
   ]
