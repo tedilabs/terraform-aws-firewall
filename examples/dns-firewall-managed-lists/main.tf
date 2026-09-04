@@ -93,7 +93,10 @@ module "firewall" {
   # source  = "tedilabs/firewall/aws//modules/dns-firewall"
   # version = "~> 0.4.0"
 
-  vpc_id = data.aws_vpc.default.id
+  target = {
+    type = "VPC"
+    id   = data.aws_vpc.default.id
+  }
 
   # Keep the failure mode closed, so a query which DNS Firewall cannot evaluate
   # is blocked rather than allowed.
