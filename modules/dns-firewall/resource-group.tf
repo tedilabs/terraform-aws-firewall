@@ -1,6 +1,4 @@
 locals {
-  resource_group_enabled = var.target.type == "VPC" && var.resource_group.enabled && var.module_tags_enabled
-
   resource_group_name = (var.resource_group.name != ""
     ? var.resource_group.name
     : join(".", [
@@ -16,7 +14,7 @@ module "resource_group" {
   source  = "tedilabs/misc/aws//modules/resource-group"
   version = "~> 0.12.0"
 
-  count = local.resource_group_enabled ? 1 : 0
+  count = (var.resource_group.enabled && var.module_tags_enabled) ? 1 : 0
 
   region = var.region
 
