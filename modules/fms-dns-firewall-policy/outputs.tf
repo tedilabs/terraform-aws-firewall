@@ -39,8 +39,7 @@ output "policy" {
 output "scope" {
   description = "The configuration of this policy scope."
   value = {
-    resource_types = var.resource_types
-    resource_sets  = aws_fms_policy.this.resource_set_ids
+    resource_type = aws_fms_policy.this.resource_type
     resource_tags_filter = {
       type     = aws_fms_policy.this.exclude_resource_tags ? "BLACKLIST" : "WHITELIST"
       operator = aws_fms_policy.this.resource_tag_logical_operator

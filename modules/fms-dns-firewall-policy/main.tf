@@ -27,6 +27,9 @@ locals {
 ###################################################
 
 # INFO: Not supported attributes
+# - `resource_type_list`: The resource type of DNS Firewall policy is always `AWS::EC2::VPC`.
+# - `resource_set_ids`: Resource sets are only supported by Network Firewall policies.
+# - `security_service_policy_data.policy_option`: Only used by Network Firewall, third-party firewall and Network ACL policies.
 resource "aws_fms_policy" "this" {
   region = var.region
 
@@ -57,9 +60,8 @@ resource "aws_fms_policy" "this" {
 
 
   ## Scope
-  resource_type      = length(var.resource_types) == 1 ? var.resource_types[0] : null
-  resource_type_list = length(var.resource_types) > 1 ? var.resource_types : null
-  resource_set_ids   = var.resource_sets
+  resource_type = "AWS::EC2::VPC"
+  # resource_type_list = var.resource_types
 
   resource_tags                 = var.resource_tags_filter.tags
   exclude_resource_tags         = var.resource_tags_filter.type == "BLACKLIST"

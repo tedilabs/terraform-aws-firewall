@@ -122,7 +122,7 @@ module "policy" {
   ]
 
   ## Scope
-  resource_types = ["AWS::EC2::VPC"]
+  # resource_types = ["AWS::EC2::VPC"]
   resource_tags_filter = {
     type = "BLACKLIST"
     tags = {
