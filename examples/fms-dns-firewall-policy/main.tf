@@ -42,7 +42,6 @@ module "domain_list_whitelist" {
 }
 
 
-
 ###################################################
 # DNS Firewall Rule Group
 ###################################################
@@ -105,7 +104,8 @@ module "policy" {
   # source  = "tedilabs/firewall/aws//modules/fms-dns-firewall-policy"
   # version = "~> 0.4.0"
 
-  name = "dns-firewall-example"
+  name        = "dns-firewall-example"
+  description = "Example FMS policy for Route53 DNS Firewall."
 
   ## Policy
   pre_rule_groups = [
@@ -122,16 +122,17 @@ module "policy" {
   ]
 
   ## Scope
-  # resource_types = ["AWS::EC2::VPC"]
   resource_tags_filter = {
-    type = "BLACKLIST"
+    type     = "BLACKLIST"
+    operator = "AND"
     tags = {
       "Team" = "security"
     }
   }
   organization_filter = {
-    type     = "WHITELIST"
-    accounts = []
+    type = "WHITELIST"
+    # accounts           = ["123456789012"]
+    # organization_units = ["ou-xxxx-xxxxxxxx"]
   }
 
   ## Attributes
