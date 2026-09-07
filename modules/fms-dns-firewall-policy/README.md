@@ -61,5 +61,4 @@ This module creates following resources.
 | <a name="output_region"></a> [region](#output\_region) | The AWS region this module resources resides in. |
 | <a name="output_resource_group"></a> [resource\_group](#output\_resource\_group) | The resource group created to manage resources in this module. |
 | <a name="output_scope"></a> [scope](#output\_scope) | The configuration of this policy scope. |
-| <a name="output_update_token"></a> [update\_token](#output\_update\_token) | The unique identifier for each update to the AWS Firewall Manager Policy. |
 <!-- END_TF_DOCS -->

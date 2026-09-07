@@ -63,6 +63,9 @@ resource "aws_fms_policy" "this" {
   resource_type = "AWS::EC2::VPC"
   # resource_type_list = var.resource_types
 
+  # INFO: `resource_tag_logical_operator` decides how multiple resource tags are combined to filter resources.
+  # - `AND`: A resource should have all the tags to be included or excluded.
+  # - `OR`: A resource should have at least one of the tags to be included or excluded.
   resource_tags                 = var.resource_tags_filter.tags
   exclude_resource_tags         = var.resource_tags_filter.type == "BLACKLIST"
   resource_tag_logical_operator = var.resource_tags_filter.operator
