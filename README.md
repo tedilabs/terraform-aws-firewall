@@ -129,6 +129,10 @@ module "firewall" {
 
 ## Examples
 
+### AWS FMS (Firewall Manager)
+
+- [DNS Firewall Security Policy](./examples/fms-dns-firewall-policy)
+
 ### Route53 DNS Firewall
 
 - [Route53 DNS Firewall with AWS Managed Domain Lists](./examples/dns-firewall-managed-lists)

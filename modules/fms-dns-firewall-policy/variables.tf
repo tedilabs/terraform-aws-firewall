@@ -8,11 +8,19 @@ variable "region" {
 variable "name" {
   description = "(Required) The friendly name of the AWS Firewall Manager Policy."
   type        = string
+  nullable    = false
+}
+
+variable "description" {
+  description = "(Optional) The description of the AWS Firewall Manager Policy."
+  type        = string
+  default     = "Managed by Terraform."
+  nullable    = false
 }
 
 variable "pre_rule_groups" {
   description = <<EOF
-  (Required) A list of rule groups to process first. Each item of `pre_rule_groups` block as defined below.
+  (Optional) A list of rule groups to process first. Each item of `pre_rule_groups` block as defined below. At least one rule group should be provided in `pre_rule_groups` or `post_rule_groups`.
     (Required) `priority` - The setting that determines the processing order of the rule group among the rule groups that you associate with the specified VPC. DNS Firewall filters VPC traffic starting from the rule group with the lowest numeric priority setting. Valid values for `priority` are between 1 and 99.
     (Required) `rule_group` - The ID of the firewall rule group.
   EOF
@@ -20,11 +28,12 @@ variable "pre_rule_groups" {
     priority   = number
     rule_group = string
   }))
+  default  = []
   nullable = false
 
   validation {
-    condition     = length(var.pre_rule_groups) > 0
-    error_message = "The `pre_rule_groups` should have at least one rule group."
+    condition     = length(var.pre_rule_groups) + length(var.post_rule_groups) > 0
+    error_message = "At least one rule group should be provided in `pre_rule_groups` or `post_rule_groups`."
   }
 
   validation {
@@ -58,22 +67,24 @@ variable "post_rule_groups" {
   }
 }
 
-variable "resource_types" {
-  description = "(Optional) A list of resource types to protect."
-  type        = list(string)
-  default     = ["AWS::EC2::VPC"]
-  nullable    = false
-}
+# variable "resource_types" {
+#   description = "(Optional) A list of resource types to protect."
+#   type        = list(string)
+#   default     = ["AWS::EC2::VPC"]
+#   nullable    = false
+# }
 
 variable "resource_tags_filter" {
   description = <<EOF
-  (Optional) A filter configuration to decide protections on resources based on the resource tags. `resourcee_tags_filter` block as defined below.
+  (Optional) A filter configuration to decide protections on resources based on the resource tags. `resource_tags_filter` block as defined below.
     (Optional) `type` - Whether to include or exclude resources that contain `tags` from protections by this policy. Valid values are `WHITELIST` and `BLACKLIST`.
+    (Optional) `operator` - How to combine multiple resource tags of `tags`. Valid values are `AND` and `OR`. `AND` requires a resource to have all the tags to be included or excluded, and `OR` requires a resource to have at least one of the tags. Defaults to `AND`.
     (Optional) `tags` - A map of resource tags to filter resources.
   EOF
   type = object({
-    type = optional(string, "WHITELIST")
-    tags = optional(map(string), {})
+    type     = optional(string, "WHITELIST")
+    operator = optional(string, "AND")
+    tags     = optional(map(string), {})
   })
   default  = {}
   nullable = false
@@ -81,6 +92,11 @@ variable "resource_tags_filter" {
   validation {
     condition     = contains(["WHITELIST", "BLACKLIST"], var.resource_tags_filter.type)
     error_message = "The `resource_tags_filter.type` should be one of `WHITELIST`, `BLACKLIST`."
+  }
+
+  validation {
+    condition     = contains(["AND", "OR"], var.resource_tags_filter.operator)
+    error_message = "The `resource_tags_filter.operator` should be one of `AND`, `OR`."
   }
 }
 
@@ -123,18 +139,7 @@ variable "cascade_deletion_enabled" {
   description = <<EOF
   (Optional) Whether to cleanup resources which is managed by the policy on deletion. Defaults to `true`.
 
-  If `true`, the request performs cleanup according to the policy type.
-
-  For AWS WAF and Shield Advanced policies, the cleanup does the following:
-  - Deletes rule groups created by AWS Firewall Manager
-  - Removes web ACLs from in-scope resources
-  - Deletes web ACLs that contain no rules or rule groups
-
-  For security group policies, the cleanup does the following for each security group in the policy:
-  - Disassociates the security group from in-scope resources
-  - Deletes the security group if it was created through Firewall Manager and if it's no longer associated with any resources through another policy
-
-  After the cleanup, in-scope resources are no longer protected by web ACLs in this policy. Protection of out-of-scope resources remains unchanged.
+  If `true`, the request performs cleanup according to the policy type. AWS documents the cleanup behavior only for WAF, Shield Advanced and security group policies, and does not document a DNS Firewall specific behavior for this option. According to AWS, when a DNS Firewall policy is deleted, the rule group associations managed by Firewall Manager are removed from the VPCs in scope of the policy.
   EOF
   type        = bool
   default     = true
@@ -159,9 +164,6 @@ variable "module_tags_enabled" {
 ###################################################
 # Resource Group
 ###################################################
-
-
-
 
 variable "resource_group" {
   description = <<EOF
