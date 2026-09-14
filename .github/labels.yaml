@@ -1,32 +1,22 @@
 # Modules
 - color: "fbca04"
+  description: "This issue or pull request is related to dns-firewall module."
+  name: ":floppy_disk: dns-firewall"
+- color: "fbca04"
   description: "This issue or pull request is related to dns-firewall-domain-list module."
   name: ":floppy_disk: dns-firewall-domain-list"
-
 - color: "fbca04"
   description: "This issue or pull request is related to dns-firewall-rule-group module."
   name: ":floppy_disk: dns-firewall-rule-group"
-
-- color: "fbca04"
-  description: "This issue or pull request is related to dns-firewall module."
-  name: ":floppy_disk: dns-firewall"
-
 - color: "fbca04"
   description: "This issue or pull request is related to fms-dns-firewall-policy module."
   name: ":floppy_disk: fms-dns-firewall-policy"
-
-- color: "fbca04"
-  description: "This issue or pull request is related to network-firewall module."
-  name: ":floppy_disk: network-firewall"
-
 - color: "fbca04"
   description: "This issue or pull request is related to waf-ip-set module."
   name: ":floppy_disk: waf-ip-set"
-
 - color: "fbca04"
   description: "This issue or pull request is related to waf-regex-pattern-set module."
   name: ":floppy_disk: waf-regex-pattern-set"
-
 - color: "fbca04"
   description: "This issue or pull request is related to waf-web-acl module."
   name: ":floppy_disk: waf-web-acl"
