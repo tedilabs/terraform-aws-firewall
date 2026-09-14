@@ -9,33 +9,33 @@ This module creates following resources.
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.12 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.12 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.28.0 |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.12 |
 
 ## Modules
 
 | Name | Source | Version |
-|------|--------|---------|
+| ---- | ------ | ------- |
 | <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group) | tedilabs/misc/aws//modules/resource-group | ~> 0.12.0 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_wafv2_web_acl.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/wafv2_web_acl) | resource |
 | [aws_wafv2_web_acl_association.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/wafv2_web_acl_association) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_default_action"></a> [default\_action](#input\_default\_action) | (Required) The action to perform if none of the Rules contained in the WebACL match. `default_action` as defined below. Valid values are `ALLOW`, `BLOCK`. | `string` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | (Required) A name of the WAF Web ACL. | `string` | n/a | yes |
 | <a name="input_custom_request"></a> [custom\_request](#input\_custom\_request) | (Optional) A custom request to insert into the request. Only used if the `default_action` is set to `ALLOW`. `custom_request` as defined below.<br/>    (Optional) `headers` - A list of custom HTTP headers to insert into the request. Only used if the `default_action` is set to `ALLOW`. Each items of `custom_requeset_headers` block as defined below.<br/>      (Required) `name` - The name of the custom HTTP header. For custom request header insertion, when AWS WAF inserts the header into the request, it prefixes this name `x-amzn-waf-`, to avoid confusion with the headers that are already in the request. For example, for the header name `sample`, AWS WAF inserts the header `x-amzn-waf-sample`.<br/>      (Required) `value` - The value of the custom HTTP header. | <pre>object({<br/>    headers = optional(list(object({<br/>      name  = string<br/>      value = string<br/>    })), [])<br/>  })</pre> | `null` | no |
@@ -55,7 +55,7 @@ This module creates following resources.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_application_integration_url"></a> [application\_integration\_url](#output\_application\_integration\_url) | The URL to use in SDK integrations with managed rule groups. |
 | <a name="output_arn"></a> [arn](#output\_arn) | The Amazon Resource Name (ARN) of the WAF Web ACL. |
 | <a name="output_capacity"></a> [capacity](#output\_capacity) | The web ACL capacity units (WCUs) currently being used by this web ACL. |
