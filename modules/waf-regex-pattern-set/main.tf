@@ -3,7 +3,7 @@ locals {
     package = "terraform-aws-firewall"
     version = trimspace(file("${path.module}/../../VERSION"))
     module  = basename(path.module)
-    name    = var.name
+    name    = "${var.is_global ? "CLOUDFRONT" : "REGIONAL"}/${var.name}"
   }
   module_tags = var.module_tags_enabled ? {
     "module.terraform.io/package"   = local.metadata.package
@@ -38,7 +38,7 @@ resource "aws_wafv2_regex_pattern_set" "this" {
 
   tags = merge(
     {
-      "Name" = local.metadata.name
+      "Name" = var.name
     },
     local.module_tags,
     var.tags,
