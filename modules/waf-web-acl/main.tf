@@ -125,6 +125,165 @@ resource "aws_wafv2_web_acl" "this" {
           }
         }
 
+        dynamic "byte_match_statement" {
+          for_each = try(rule.value.statement.byte_match, null) != null ? [rule.value.statement.byte_match] : []
+          iterator = byte_match
+
+          content {
+            positional_constraint = byte_match.value.positional_constraint
+            search_string         = byte_match.value.search_string
+
+            field_to_match {
+              dynamic "all_query_arguments" {
+                for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                content {}
+              }
+              dynamic "method" {
+                for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                content {}
+              }
+              dynamic "query_string" {
+                for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                content {}
+              }
+              dynamic "uri_path" {
+                for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                content {}
+              }
+              dynamic "body" {
+                for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                content {
+                  oversize_handling = try(body.value.oversize_handling, null)
+                }
+              }
+              dynamic "header_order" {
+                for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                content {
+                  oversize_handling = header_order.value.oversize_handling
+                }
+              }
+              dynamic "ja3_fingerprint" {
+                for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                content {
+                  fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                }
+              }
+              dynamic "ja4_fingerprint" {
+                for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                content {
+                  fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                }
+              }
+              dynamic "single_header" {
+                for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                content {
+                  name = single_header.value.name
+                }
+              }
+              dynamic "single_query_argument" {
+                for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                content {
+                  name = single_query_argument.value.name
+                }
+              }
+              dynamic "uri_fragment" {
+                for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                content {
+                  fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                }
+              }
+              dynamic "cookies" {
+                for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                content {
+                  match_scope       = cookies.value.match_scope
+                  oversize_handling = cookies.value.oversize_handling
+
+                  match_pattern {
+                    included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                    excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                    dynamic "all" {
+                      for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                      content {}
+                    }
+                  }
+                }
+              }
+              dynamic "headers" {
+                for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                content {
+                  match_scope       = headers.value.match_scope
+                  oversize_handling = headers.value.oversize_handling
+
+                  match_pattern {
+                    included_headers = try(headers.value.match_pattern.included_headers, null)
+                    excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                    dynamic "all" {
+                      for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                      content {}
+                    }
+                  }
+                }
+              }
+              dynamic "json_body" {
+                for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                content {
+                  match_scope               = json_body.value.match_scope
+                  invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                  oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                  match_pattern {
+                    included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                    dynamic "all" {
+                      for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                      content {}
+                    }
+                  }
+                }
+              }
+            }
+
+            dynamic "text_transformation" {
+              for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+              iterator = transformation
+
+              content {
+                priority = transformation.value.priority
+                type     = transformation.value.type
+              }
+            }
+
+            dynamic "pre_parse_text_transformation" {
+              for_each = try(byte_match.value.pre_parse_text_transformations, [])
+              iterator = transformation
+
+              content {
+                priority = transformation.value.priority
+                type     = transformation.value.type
+              }
+            }
+          }
+        }
+
         dynamic "geo_match_statement" {
           for_each = try(rule.value.statement.geo_match, null) != null ? [rule.value.statement.geo_match] : []
           iterator = geo_match
@@ -182,10 +341,169 @@ resource "aws_wafv2_web_acl" "this" {
 
           content {
             dynamic "statement" {
-              for_each = can(and.value.statements) ? and.value.statements : []
+              for_each = try(and.value.statements, [])
 
               content {
                 # Nested simple statements
+                dynamic "byte_match_statement" {
+                  for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                  iterator = byte_match
+
+                  content {
+                    positional_constraint = byte_match.value.positional_constraint
+                    search_string         = byte_match.value.search_string
+
+                    field_to_match {
+                      dynamic "all_query_arguments" {
+                        for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "method" {
+                        for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "query_string" {
+                        for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "uri_path" {
+                        for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "body" {
+                        for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                        content {
+                          oversize_handling = try(body.value.oversize_handling, null)
+                        }
+                      }
+                      dynamic "header_order" {
+                        for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                        content {
+                          oversize_handling = header_order.value.oversize_handling
+                        }
+                      }
+                      dynamic "ja3_fingerprint" {
+                        for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                        content {
+                          fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                        }
+                      }
+                      dynamic "ja4_fingerprint" {
+                        for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                        content {
+                          fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                        }
+                      }
+                      dynamic "single_header" {
+                        for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                        content {
+                          name = single_header.value.name
+                        }
+                      }
+                      dynamic "single_query_argument" {
+                        for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                        content {
+                          name = single_query_argument.value.name
+                        }
+                      }
+                      dynamic "uri_fragment" {
+                        for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                        content {
+                          fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                        }
+                      }
+                      dynamic "cookies" {
+                        for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                        content {
+                          match_scope       = cookies.value.match_scope
+                          oversize_handling = cookies.value.oversize_handling
+
+                          match_pattern {
+                            included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                            excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                            dynamic "all" {
+                              for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                              content {}
+                            }
+                          }
+                        }
+                      }
+                      dynamic "headers" {
+                        for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                        content {
+                          match_scope       = headers.value.match_scope
+                          oversize_handling = headers.value.oversize_handling
+
+                          match_pattern {
+                            included_headers = try(headers.value.match_pattern.included_headers, null)
+                            excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                            dynamic "all" {
+                              for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                              content {}
+                            }
+                          }
+                        }
+                      }
+                      dynamic "json_body" {
+                        for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                        content {
+                          match_scope               = json_body.value.match_scope
+                          invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                          oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                          match_pattern {
+                            included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                            dynamic "all" {
+                              for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                              content {}
+                            }
+                          }
+                        }
+                      }
+                    }
+
+                    dynamic "text_transformation" {
+                      for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                      iterator = transformation
+
+                      content {
+                        priority = transformation.value.priority
+                        type     = transformation.value.type
+                      }
+                    }
+
+                    dynamic "pre_parse_text_transformation" {
+                      for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                      iterator = transformation
+
+                      content {
+                        priority = transformation.value.priority
+                        type     = transformation.value.type
+                      }
+                    }
+                  }
+                }
+
                 dynamic "ip_set_reference_statement" {
                   for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -201,10 +519,169 @@ resource "aws_wafv2_web_acl" "this" {
 
                   content {
                     dynamic "statement" {
-                      for_each = can(and_statement.value.statements) ? and_statement.value.statements : []
+                      for_each = try(and_statement.value.statements, [])
 
                       content {
                         # 3rd level simple statements
+                        dynamic "byte_match_statement" {
+                          for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                          iterator = byte_match
+
+                          content {
+                            positional_constraint = byte_match.value.positional_constraint
+                            search_string         = byte_match.value.search_string
+
+                            field_to_match {
+                              dynamic "all_query_arguments" {
+                                for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "method" {
+                                for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "query_string" {
+                                for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "uri_path" {
+                                for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "body" {
+                                for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                                content {
+                                  oversize_handling = try(body.value.oversize_handling, null)
+                                }
+                              }
+                              dynamic "header_order" {
+                                for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                                content {
+                                  oversize_handling = header_order.value.oversize_handling
+                                }
+                              }
+                              dynamic "ja3_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "ja4_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "single_header" {
+                                for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                                content {
+                                  name = single_header.value.name
+                                }
+                              }
+                              dynamic "single_query_argument" {
+                                for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                                content {
+                                  name = single_query_argument.value.name
+                                }
+                              }
+                              dynamic "uri_fragment" {
+                                for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                                content {
+                                  fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                                }
+                              }
+                              dynamic "cookies" {
+                                for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                                content {
+                                  match_scope       = cookies.value.match_scope
+                                  oversize_handling = cookies.value.oversize_handling
+
+                                  match_pattern {
+                                    included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                                    excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                                    dynamic "all" {
+                                      for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "headers" {
+                                for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                                content {
+                                  match_scope       = headers.value.match_scope
+                                  oversize_handling = headers.value.oversize_handling
+
+                                  match_pattern {
+                                    included_headers = try(headers.value.match_pattern.included_headers, null)
+                                    excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                                    dynamic "all" {
+                                      for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "json_body" {
+                                for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                                content {
+                                  match_scope               = json_body.value.match_scope
+                                  invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                                  oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                                  match_pattern {
+                                    included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                                    dynamic "all" {
+                                      for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                            }
+
+                            dynamic "text_transformation" {
+                              for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+
+                            dynamic "pre_parse_text_transformation" {
+                              for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -223,10 +700,169 @@ resource "aws_wafv2_web_acl" "this" {
 
                   content {
                     dynamic "statement" {
-                      for_each = can(or_statement.value.statements) ? or_statement.value.statements : []
+                      for_each = try(or_statement.value.statements, [])
 
                       content {
                         # 3rd level simple statements
+                        dynamic "byte_match_statement" {
+                          for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                          iterator = byte_match
+
+                          content {
+                            positional_constraint = byte_match.value.positional_constraint
+                            search_string         = byte_match.value.search_string
+
+                            field_to_match {
+                              dynamic "all_query_arguments" {
+                                for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "method" {
+                                for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "query_string" {
+                                for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "uri_path" {
+                                for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "body" {
+                                for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                                content {
+                                  oversize_handling = try(body.value.oversize_handling, null)
+                                }
+                              }
+                              dynamic "header_order" {
+                                for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                                content {
+                                  oversize_handling = header_order.value.oversize_handling
+                                }
+                              }
+                              dynamic "ja3_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "ja4_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "single_header" {
+                                for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                                content {
+                                  name = single_header.value.name
+                                }
+                              }
+                              dynamic "single_query_argument" {
+                                for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                                content {
+                                  name = single_query_argument.value.name
+                                }
+                              }
+                              dynamic "uri_fragment" {
+                                for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                                content {
+                                  fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                                }
+                              }
+                              dynamic "cookies" {
+                                for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                                content {
+                                  match_scope       = cookies.value.match_scope
+                                  oversize_handling = cookies.value.oversize_handling
+
+                                  match_pattern {
+                                    included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                                    excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                                    dynamic "all" {
+                                      for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "headers" {
+                                for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                                content {
+                                  match_scope       = headers.value.match_scope
+                                  oversize_handling = headers.value.oversize_handling
+
+                                  match_pattern {
+                                    included_headers = try(headers.value.match_pattern.included_headers, null)
+                                    excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                                    dynamic "all" {
+                                      for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "json_body" {
+                                for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                                content {
+                                  match_scope               = json_body.value.match_scope
+                                  invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                                  oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                                  match_pattern {
+                                    included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                                    dynamic "all" {
+                                      for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                            }
+
+                            dynamic "text_transformation" {
+                              for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+
+                            dynamic "pre_parse_text_transformation" {
+                              for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -249,6 +885,165 @@ resource "aws_wafv2_web_acl" "this" {
 
                       content {
                         # 3rd level simple statements
+                        dynamic "byte_match_statement" {
+                          for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                          iterator = byte_match
+
+                          content {
+                            positional_constraint = byte_match.value.positional_constraint
+                            search_string         = byte_match.value.search_string
+
+                            field_to_match {
+                              dynamic "all_query_arguments" {
+                                for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "method" {
+                                for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "query_string" {
+                                for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "uri_path" {
+                                for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "body" {
+                                for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                                content {
+                                  oversize_handling = try(body.value.oversize_handling, null)
+                                }
+                              }
+                              dynamic "header_order" {
+                                for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                                content {
+                                  oversize_handling = header_order.value.oversize_handling
+                                }
+                              }
+                              dynamic "ja3_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "ja4_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "single_header" {
+                                for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                                content {
+                                  name = single_header.value.name
+                                }
+                              }
+                              dynamic "single_query_argument" {
+                                for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                                content {
+                                  name = single_query_argument.value.name
+                                }
+                              }
+                              dynamic "uri_fragment" {
+                                for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                                content {
+                                  fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                                }
+                              }
+                              dynamic "cookies" {
+                                for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                                content {
+                                  match_scope       = cookies.value.match_scope
+                                  oversize_handling = cookies.value.oversize_handling
+
+                                  match_pattern {
+                                    included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                                    excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                                    dynamic "all" {
+                                      for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "headers" {
+                                for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                                content {
+                                  match_scope       = headers.value.match_scope
+                                  oversize_handling = headers.value.oversize_handling
+
+                                  match_pattern {
+                                    included_headers = try(headers.value.match_pattern.included_headers, null)
+                                    excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                                    dynamic "all" {
+                                      for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "json_body" {
+                                for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                                content {
+                                  match_scope               = json_body.value.match_scope
+                                  invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                                  oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                                  match_pattern {
+                                    included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                                    dynamic "all" {
+                                      for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                            }
+
+                            dynamic "text_transformation" {
+                              for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+
+                            dynamic "pre_parse_text_transformation" {
+                              for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -272,10 +1067,169 @@ resource "aws_wafv2_web_acl" "this" {
 
           content {
             dynamic "statement" {
-              for_each = can(or.value.statements) ? or.value.statements : []
+              for_each = try(or.value.statements, [])
 
               content {
                 # Nested simple statements
+                dynamic "byte_match_statement" {
+                  for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                  iterator = byte_match
+
+                  content {
+                    positional_constraint = byte_match.value.positional_constraint
+                    search_string         = byte_match.value.search_string
+
+                    field_to_match {
+                      dynamic "all_query_arguments" {
+                        for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "method" {
+                        for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "query_string" {
+                        for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "uri_path" {
+                        for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "body" {
+                        for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                        content {
+                          oversize_handling = try(body.value.oversize_handling, null)
+                        }
+                      }
+                      dynamic "header_order" {
+                        for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                        content {
+                          oversize_handling = header_order.value.oversize_handling
+                        }
+                      }
+                      dynamic "ja3_fingerprint" {
+                        for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                        content {
+                          fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                        }
+                      }
+                      dynamic "ja4_fingerprint" {
+                        for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                        content {
+                          fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                        }
+                      }
+                      dynamic "single_header" {
+                        for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                        content {
+                          name = single_header.value.name
+                        }
+                      }
+                      dynamic "single_query_argument" {
+                        for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                        content {
+                          name = single_query_argument.value.name
+                        }
+                      }
+                      dynamic "uri_fragment" {
+                        for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                        content {
+                          fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                        }
+                      }
+                      dynamic "cookies" {
+                        for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                        content {
+                          match_scope       = cookies.value.match_scope
+                          oversize_handling = cookies.value.oversize_handling
+
+                          match_pattern {
+                            included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                            excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                            dynamic "all" {
+                              for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                              content {}
+                            }
+                          }
+                        }
+                      }
+                      dynamic "headers" {
+                        for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                        content {
+                          match_scope       = headers.value.match_scope
+                          oversize_handling = headers.value.oversize_handling
+
+                          match_pattern {
+                            included_headers = try(headers.value.match_pattern.included_headers, null)
+                            excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                            dynamic "all" {
+                              for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                              content {}
+                            }
+                          }
+                        }
+                      }
+                      dynamic "json_body" {
+                        for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                        content {
+                          match_scope               = json_body.value.match_scope
+                          invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                          oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                          match_pattern {
+                            included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                            dynamic "all" {
+                              for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                              content {}
+                            }
+                          }
+                        }
+                      }
+                    }
+
+                    dynamic "text_transformation" {
+                      for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                      iterator = transformation
+
+                      content {
+                        priority = transformation.value.priority
+                        type     = transformation.value.type
+                      }
+                    }
+
+                    dynamic "pre_parse_text_transformation" {
+                      for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                      iterator = transformation
+
+                      content {
+                        priority = transformation.value.priority
+                        type     = transformation.value.type
+                      }
+                    }
+                  }
+                }
+
                 dynamic "ip_set_reference_statement" {
                   for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -291,10 +1245,169 @@ resource "aws_wafv2_web_acl" "this" {
 
                   content {
                     dynamic "statement" {
-                      for_each = can(and_statement.value.statements) ? and_statement.value.statements : []
+                      for_each = try(and_statement.value.statements, [])
 
                       content {
                         # 3rd level simple statements
+                        dynamic "byte_match_statement" {
+                          for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                          iterator = byte_match
+
+                          content {
+                            positional_constraint = byte_match.value.positional_constraint
+                            search_string         = byte_match.value.search_string
+
+                            field_to_match {
+                              dynamic "all_query_arguments" {
+                                for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "method" {
+                                for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "query_string" {
+                                for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "uri_path" {
+                                for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "body" {
+                                for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                                content {
+                                  oversize_handling = try(body.value.oversize_handling, null)
+                                }
+                              }
+                              dynamic "header_order" {
+                                for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                                content {
+                                  oversize_handling = header_order.value.oversize_handling
+                                }
+                              }
+                              dynamic "ja3_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "ja4_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "single_header" {
+                                for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                                content {
+                                  name = single_header.value.name
+                                }
+                              }
+                              dynamic "single_query_argument" {
+                                for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                                content {
+                                  name = single_query_argument.value.name
+                                }
+                              }
+                              dynamic "uri_fragment" {
+                                for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                                content {
+                                  fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                                }
+                              }
+                              dynamic "cookies" {
+                                for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                                content {
+                                  match_scope       = cookies.value.match_scope
+                                  oversize_handling = cookies.value.oversize_handling
+
+                                  match_pattern {
+                                    included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                                    excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                                    dynamic "all" {
+                                      for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "headers" {
+                                for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                                content {
+                                  match_scope       = headers.value.match_scope
+                                  oversize_handling = headers.value.oversize_handling
+
+                                  match_pattern {
+                                    included_headers = try(headers.value.match_pattern.included_headers, null)
+                                    excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                                    dynamic "all" {
+                                      for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "json_body" {
+                                for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                                content {
+                                  match_scope               = json_body.value.match_scope
+                                  invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                                  oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                                  match_pattern {
+                                    included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                                    dynamic "all" {
+                                      for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                            }
+
+                            dynamic "text_transformation" {
+                              for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+
+                            dynamic "pre_parse_text_transformation" {
+                              for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -313,10 +1426,169 @@ resource "aws_wafv2_web_acl" "this" {
 
                   content {
                     dynamic "statement" {
-                      for_each = can(or_statement.value.statements) ? or_statement.value.statements : []
+                      for_each = try(or_statement.value.statements, [])
 
                       content {
                         # 3rd level simple statements
+                        dynamic "byte_match_statement" {
+                          for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                          iterator = byte_match
+
+                          content {
+                            positional_constraint = byte_match.value.positional_constraint
+                            search_string         = byte_match.value.search_string
+
+                            field_to_match {
+                              dynamic "all_query_arguments" {
+                                for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "method" {
+                                for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "query_string" {
+                                for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "uri_path" {
+                                for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "body" {
+                                for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                                content {
+                                  oversize_handling = try(body.value.oversize_handling, null)
+                                }
+                              }
+                              dynamic "header_order" {
+                                for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                                content {
+                                  oversize_handling = header_order.value.oversize_handling
+                                }
+                              }
+                              dynamic "ja3_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "ja4_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "single_header" {
+                                for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                                content {
+                                  name = single_header.value.name
+                                }
+                              }
+                              dynamic "single_query_argument" {
+                                for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                                content {
+                                  name = single_query_argument.value.name
+                                }
+                              }
+                              dynamic "uri_fragment" {
+                                for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                                content {
+                                  fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                                }
+                              }
+                              dynamic "cookies" {
+                                for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                                content {
+                                  match_scope       = cookies.value.match_scope
+                                  oversize_handling = cookies.value.oversize_handling
+
+                                  match_pattern {
+                                    included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                                    excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                                    dynamic "all" {
+                                      for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "headers" {
+                                for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                                content {
+                                  match_scope       = headers.value.match_scope
+                                  oversize_handling = headers.value.oversize_handling
+
+                                  match_pattern {
+                                    included_headers = try(headers.value.match_pattern.included_headers, null)
+                                    excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                                    dynamic "all" {
+                                      for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "json_body" {
+                                for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                                content {
+                                  match_scope               = json_body.value.match_scope
+                                  invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                                  oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                                  match_pattern {
+                                    included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                                    dynamic "all" {
+                                      for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                            }
+
+                            dynamic "text_transformation" {
+                              for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+
+                            dynamic "pre_parse_text_transformation" {
+                              for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -339,6 +1611,165 @@ resource "aws_wafv2_web_acl" "this" {
 
                       content {
                         # 3rd level simple statements
+                        dynamic "byte_match_statement" {
+                          for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                          iterator = byte_match
+
+                          content {
+                            positional_constraint = byte_match.value.positional_constraint
+                            search_string         = byte_match.value.search_string
+
+                            field_to_match {
+                              dynamic "all_query_arguments" {
+                                for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "method" {
+                                for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "query_string" {
+                                for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "uri_path" {
+                                for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "body" {
+                                for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                                content {
+                                  oversize_handling = try(body.value.oversize_handling, null)
+                                }
+                              }
+                              dynamic "header_order" {
+                                for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                                content {
+                                  oversize_handling = header_order.value.oversize_handling
+                                }
+                              }
+                              dynamic "ja3_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "ja4_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "single_header" {
+                                for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                                content {
+                                  name = single_header.value.name
+                                }
+                              }
+                              dynamic "single_query_argument" {
+                                for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                                content {
+                                  name = single_query_argument.value.name
+                                }
+                              }
+                              dynamic "uri_fragment" {
+                                for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                                content {
+                                  fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                                }
+                              }
+                              dynamic "cookies" {
+                                for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                                content {
+                                  match_scope       = cookies.value.match_scope
+                                  oversize_handling = cookies.value.oversize_handling
+
+                                  match_pattern {
+                                    included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                                    excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                                    dynamic "all" {
+                                      for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "headers" {
+                                for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                                content {
+                                  match_scope       = headers.value.match_scope
+                                  oversize_handling = headers.value.oversize_handling
+
+                                  match_pattern {
+                                    included_headers = try(headers.value.match_pattern.included_headers, null)
+                                    excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                                    dynamic "all" {
+                                      for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "json_body" {
+                                for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                                content {
+                                  match_scope               = json_body.value.match_scope
+                                  invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                                  oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                                  match_pattern {
+                                    included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                                    dynamic "all" {
+                                      for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                            }
+
+                            dynamic "text_transformation" {
+                              for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+
+                            dynamic "pre_parse_text_transformation" {
+                              for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -366,6 +1797,165 @@ resource "aws_wafv2_web_acl" "this" {
 
               content {
                 # Nested simple statements
+                dynamic "byte_match_statement" {
+                  for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                  iterator = byte_match
+
+                  content {
+                    positional_constraint = byte_match.value.positional_constraint
+                    search_string         = byte_match.value.search_string
+
+                    field_to_match {
+                      dynamic "all_query_arguments" {
+                        for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "method" {
+                        for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "query_string" {
+                        for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "uri_path" {
+                        for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                        content {}
+                      }
+                      dynamic "body" {
+                        for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                        content {
+                          oversize_handling = try(body.value.oversize_handling, null)
+                        }
+                      }
+                      dynamic "header_order" {
+                        for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                        content {
+                          oversize_handling = header_order.value.oversize_handling
+                        }
+                      }
+                      dynamic "ja3_fingerprint" {
+                        for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                        content {
+                          fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                        }
+                      }
+                      dynamic "ja4_fingerprint" {
+                        for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                        content {
+                          fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                        }
+                      }
+                      dynamic "single_header" {
+                        for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                        content {
+                          name = single_header.value.name
+                        }
+                      }
+                      dynamic "single_query_argument" {
+                        for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                        content {
+                          name = single_query_argument.value.name
+                        }
+                      }
+                      dynamic "uri_fragment" {
+                        for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                        content {
+                          fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                        }
+                      }
+                      dynamic "cookies" {
+                        for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                        content {
+                          match_scope       = cookies.value.match_scope
+                          oversize_handling = cookies.value.oversize_handling
+
+                          match_pattern {
+                            included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                            excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                            dynamic "all" {
+                              for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                              content {}
+                            }
+                          }
+                        }
+                      }
+                      dynamic "headers" {
+                        for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                        content {
+                          match_scope       = headers.value.match_scope
+                          oversize_handling = headers.value.oversize_handling
+
+                          match_pattern {
+                            included_headers = try(headers.value.match_pattern.included_headers, null)
+                            excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                            dynamic "all" {
+                              for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                              content {}
+                            }
+                          }
+                        }
+                      }
+                      dynamic "json_body" {
+                        for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                        content {
+                          match_scope               = json_body.value.match_scope
+                          invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                          oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                          match_pattern {
+                            included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                            dynamic "all" {
+                              for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                              content {}
+                            }
+                          }
+                        }
+                      }
+                    }
+
+                    dynamic "text_transformation" {
+                      for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                      iterator = transformation
+
+                      content {
+                        priority = transformation.value.priority
+                        type     = transformation.value.type
+                      }
+                    }
+
+                    dynamic "pre_parse_text_transformation" {
+                      for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                      iterator = transformation
+
+                      content {
+                        priority = transformation.value.priority
+                        type     = transformation.value.type
+                      }
+                    }
+                  }
+                }
+
                 dynamic "ip_set_reference_statement" {
                   for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -381,10 +1971,169 @@ resource "aws_wafv2_web_acl" "this" {
 
                   content {
                     dynamic "statement" {
-                      for_each = can(and_statement.value.statements) ? and_statement.value.statements : []
+                      for_each = try(and_statement.value.statements, [])
 
                       content {
                         # 3rd level simple statements
+                        dynamic "byte_match_statement" {
+                          for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                          iterator = byte_match
+
+                          content {
+                            positional_constraint = byte_match.value.positional_constraint
+                            search_string         = byte_match.value.search_string
+
+                            field_to_match {
+                              dynamic "all_query_arguments" {
+                                for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "method" {
+                                for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "query_string" {
+                                for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "uri_path" {
+                                for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "body" {
+                                for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                                content {
+                                  oversize_handling = try(body.value.oversize_handling, null)
+                                }
+                              }
+                              dynamic "header_order" {
+                                for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                                content {
+                                  oversize_handling = header_order.value.oversize_handling
+                                }
+                              }
+                              dynamic "ja3_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "ja4_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "single_header" {
+                                for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                                content {
+                                  name = single_header.value.name
+                                }
+                              }
+                              dynamic "single_query_argument" {
+                                for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                                content {
+                                  name = single_query_argument.value.name
+                                }
+                              }
+                              dynamic "uri_fragment" {
+                                for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                                content {
+                                  fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                                }
+                              }
+                              dynamic "cookies" {
+                                for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                                content {
+                                  match_scope       = cookies.value.match_scope
+                                  oversize_handling = cookies.value.oversize_handling
+
+                                  match_pattern {
+                                    included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                                    excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                                    dynamic "all" {
+                                      for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "headers" {
+                                for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                                content {
+                                  match_scope       = headers.value.match_scope
+                                  oversize_handling = headers.value.oversize_handling
+
+                                  match_pattern {
+                                    included_headers = try(headers.value.match_pattern.included_headers, null)
+                                    excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                                    dynamic "all" {
+                                      for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "json_body" {
+                                for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                                content {
+                                  match_scope               = json_body.value.match_scope
+                                  invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                                  oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                                  match_pattern {
+                                    included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                                    dynamic "all" {
+                                      for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                            }
+
+                            dynamic "text_transformation" {
+                              for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+
+                            dynamic "pre_parse_text_transformation" {
+                              for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -403,10 +2152,169 @@ resource "aws_wafv2_web_acl" "this" {
 
                   content {
                     dynamic "statement" {
-                      for_each = can(or_statement.value.statements) ? or_statement.value.statements : []
+                      for_each = try(or_statement.value.statements, [])
 
                       content {
                         # 3rd level simple statements
+                        dynamic "byte_match_statement" {
+                          for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                          iterator = byte_match
+
+                          content {
+                            positional_constraint = byte_match.value.positional_constraint
+                            search_string         = byte_match.value.search_string
+
+                            field_to_match {
+                              dynamic "all_query_arguments" {
+                                for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "method" {
+                                for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "query_string" {
+                                for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "uri_path" {
+                                for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "body" {
+                                for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                                content {
+                                  oversize_handling = try(body.value.oversize_handling, null)
+                                }
+                              }
+                              dynamic "header_order" {
+                                for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                                content {
+                                  oversize_handling = header_order.value.oversize_handling
+                                }
+                              }
+                              dynamic "ja3_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "ja4_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "single_header" {
+                                for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                                content {
+                                  name = single_header.value.name
+                                }
+                              }
+                              dynamic "single_query_argument" {
+                                for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                                content {
+                                  name = single_query_argument.value.name
+                                }
+                              }
+                              dynamic "uri_fragment" {
+                                for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                                content {
+                                  fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                                }
+                              }
+                              dynamic "cookies" {
+                                for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                                content {
+                                  match_scope       = cookies.value.match_scope
+                                  oversize_handling = cookies.value.oversize_handling
+
+                                  match_pattern {
+                                    included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                                    excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                                    dynamic "all" {
+                                      for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "headers" {
+                                for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                                content {
+                                  match_scope       = headers.value.match_scope
+                                  oversize_handling = headers.value.oversize_handling
+
+                                  match_pattern {
+                                    included_headers = try(headers.value.match_pattern.included_headers, null)
+                                    excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                                    dynamic "all" {
+                                      for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "json_body" {
+                                for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                                content {
+                                  match_scope               = json_body.value.match_scope
+                                  invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                                  oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                                  match_pattern {
+                                    included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                                    dynamic "all" {
+                                      for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                            }
+
+                            dynamic "text_transformation" {
+                              for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+
+                            dynamic "pre_parse_text_transformation" {
+                              for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -429,6 +2337,165 @@ resource "aws_wafv2_web_acl" "this" {
 
                       content {
                         # 3rd level simple statements
+                        dynamic "byte_match_statement" {
+                          for_each = try(statement.value.byte_match, null) != null ? [statement.value.byte_match] : []
+                          iterator = byte_match
+
+                          content {
+                            positional_constraint = byte_match.value.positional_constraint
+                            search_string         = byte_match.value.search_string
+
+                            field_to_match {
+                              dynamic "all_query_arguments" {
+                                for_each = try(byte_match.value.field_to_match.all_query_arguments, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "method" {
+                                for_each = try(byte_match.value.field_to_match.method, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "query_string" {
+                                for_each = try(byte_match.value.field_to_match.query_string, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "uri_path" {
+                                for_each = try(byte_match.value.field_to_match.uri_path, null) != null ? ["go"] : []
+
+                                content {}
+                              }
+                              dynamic "body" {
+                                for_each = try(byte_match.value.field_to_match.body, null) != null ? [byte_match.value.field_to_match.body] : []
+
+                                content {
+                                  oversize_handling = try(body.value.oversize_handling, null)
+                                }
+                              }
+                              dynamic "header_order" {
+                                for_each = try(byte_match.value.field_to_match.header_order, null) != null ? [byte_match.value.field_to_match.header_order] : []
+
+                                content {
+                                  oversize_handling = header_order.value.oversize_handling
+                                }
+                              }
+                              dynamic "ja3_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja3_fingerprint, null) != null ? [byte_match.value.field_to_match.ja3_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja3_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "ja4_fingerprint" {
+                                for_each = try(byte_match.value.field_to_match.ja4_fingerprint, null) != null ? [byte_match.value.field_to_match.ja4_fingerprint] : []
+
+                                content {
+                                  fallback_behavior = ja4_fingerprint.value.fallback_behavior
+                                }
+                              }
+                              dynamic "single_header" {
+                                for_each = try(byte_match.value.field_to_match.single_header, null) != null ? [byte_match.value.field_to_match.single_header] : []
+
+                                content {
+                                  name = single_header.value.name
+                                }
+                              }
+                              dynamic "single_query_argument" {
+                                for_each = try(byte_match.value.field_to_match.single_query_argument, null) != null ? [byte_match.value.field_to_match.single_query_argument] : []
+
+                                content {
+                                  name = single_query_argument.value.name
+                                }
+                              }
+                              dynamic "uri_fragment" {
+                                for_each = try(byte_match.value.field_to_match.uri_fragment, null) != null ? [byte_match.value.field_to_match.uri_fragment] : []
+
+                                content {
+                                  fallback_behavior = try(uri_fragment.value.fallback_behavior, null)
+                                }
+                              }
+                              dynamic "cookies" {
+                                for_each = try(byte_match.value.field_to_match.cookies, null) != null ? [byte_match.value.field_to_match.cookies] : []
+
+                                content {
+                                  match_scope       = cookies.value.match_scope
+                                  oversize_handling = cookies.value.oversize_handling
+
+                                  match_pattern {
+                                    included_cookies = try(cookies.value.match_pattern.included_cookies, null)
+                                    excluded_cookies = try(cookies.value.match_pattern.excluded_cookies, null)
+
+                                    dynamic "all" {
+                                      for_each = try(cookies.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "headers" {
+                                for_each = try(byte_match.value.field_to_match.headers, null) != null ? [byte_match.value.field_to_match.headers] : []
+
+                                content {
+                                  match_scope       = headers.value.match_scope
+                                  oversize_handling = headers.value.oversize_handling
+
+                                  match_pattern {
+                                    included_headers = try(headers.value.match_pattern.included_headers, null)
+                                    excluded_headers = try(headers.value.match_pattern.excluded_headers, null)
+
+                                    dynamic "all" {
+                                      for_each = try(headers.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                              dynamic "json_body" {
+                                for_each = try(byte_match.value.field_to_match.json_body, null) != null ? [byte_match.value.field_to_match.json_body] : []
+
+                                content {
+                                  match_scope               = json_body.value.match_scope
+                                  invalid_fallback_behavior = try(json_body.value.invalid_fallback_behavior, null)
+                                  oversize_handling         = try(json_body.value.oversize_handling, null)
+
+                                  match_pattern {
+                                    included_paths = try(json_body.value.match_pattern.included_paths, null)
+
+                                    dynamic "all" {
+                                      for_each = try(json_body.value.match_pattern.all, null) != null ? ["go"] : []
+
+                                      content {}
+                                    }
+                                  }
+                                }
+                              }
+                            }
+
+                            dynamic "text_transformation" {
+                              for_each = try(byte_match.value.text_transformations, [{ priority = 0, type = "NONE" }])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+
+                            dynamic "pre_parse_text_transformation" {
+                              for_each = try(byte_match.value.pre_parse_text_transformations, [])
+                              iterator = transformation
+
+                              content {
+                                priority = transformation.value.priority
+                                type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 

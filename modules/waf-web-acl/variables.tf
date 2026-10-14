@@ -80,7 +80,7 @@ variable "rules" {
     (Optional) `labels` - A set of labels to associate with requests that match this rule. Rules that are evaluated later in the same protection pack (web ACL) can reference the labels that this rule adds. A label is a string containing the label name and optional prefix and namespaces. For example, `namespace1:name` or `awswaf:managed:aws:managed-rule-set:namespace1:name`. You can specify up to 5 namespaces in a label. Labels are case sensitive
     (Required) `action` - The action that AWS WAF should take on a web request when it matches the rule's statement. Valid values are `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, `COUNT`.
     (Required) `override_action` - The action to take on a web request when it matches the rule's statement. Valid values are `COUNT`, `NONE`.
-    (Required) `statement` - A rule statement that defines the inspection criteria. Supports all AWS WAF statement types including nested logical operators (and_statement, or_statement, not_statement) with arbitrary depth. Each rule can have a completely different statement structure. See: https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statements.html
+    (Required) `statement` - A rule statement that defines the inspection criteria. Supports the statement types documented below. Logical operators use `and = { statements = [...] }`, `or = { statements = [...] }`, and `not = { statement = {...} }`, with up to three statement levels including the top-level statement. Each rule can have a completely different statement structure. See: https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statements.html
       (Optional) `asn_match` - A rule statement that inspects web traffic based on the ASN (Autonomous System Number) associated with the request's IP address. An ASN is a unique identifier allocated to each autonomous system (AS) for use in BGP routing. `asn_match` as defined below.
         (Required) `asn_list` - A set of autonomous system numbers (ASNs).
         (Optional) `forwarded_ip_header` - A configuration for inspecting IP addresses in an HTTP header instead of using the IP address that's reported by the web request origin. `forwarded_ip_header` as defined below.
@@ -89,6 +89,47 @@ variable "rules" {
           (Optional) `fallback_behavior` - Handling for requests that don't have a valid IP address in the specified header. Note that, if the specified header isn't present at all in the request, AWS WAF doesn't apply the rule to the request. Valid values are `MATCH` or `NO_MATCH`. Defaults to `NO_MATCH`.
             `MATCH` - Count and rate limit with other requests that are missing their IP address.
             `NO_MATCH` - Don't apply the rule to the request.
+      (Optional) `byte_match` - A rule statement that searches a request component for a byte string. Supported at the top level and under any `and`, `or`, or `not` combination up to three statement levels. `byte_match` as defined below.
+        (Required) `search_string` - The string to search for, from 1 to 200 bytes. Provide the original string, not a Base64-encoded value.
+        (Required) `positional_constraint` - Where the search string must occur. Valid values are `EXACTLY`, `STARTS_WITH`, `ENDS_WITH`, `CONTAINS`, `CONTAINS_WORD`.
+        (Required) `field_to_match` - The request component to inspect. Configure exactly one of the following fields. Empty blocks are represented by `{}`.
+          (Optional) `all_query_arguments` - Inspect all query argument values. Set to `{}`.
+          (Optional) `body` - Inspect the request body. `body` as defined below.
+            (Optional) `oversize_handling` - Handling for an oversized body. Valid values are `CONTINUE`, `MATCH`, `NO_MATCH`. Defaults to the provider's default (`CONTINUE`).
+          (Optional) `cookies` - Inspect request cookies. `cookies` as defined below.
+            (Required) `match_scope` - Cookie components to inspect. Valid values are `ALL`, `KEY`, `VALUE`.
+            (Required) `oversize_handling` - Handling for oversized cookies. Valid values are `CONTINUE`, `MATCH`, `NO_MATCH`.
+            (Required) `match_pattern` - Configure exactly one of `all = {}`, `included_cookies` (a list of cookie names), or `excluded_cookies` (a list of cookie names).
+          (Optional) `header_order` - Inspect the colon-separated request header names in their received order. `header_order` as defined below.
+            (Required) `oversize_handling` - Handling for oversized headers. Valid values are `CONTINUE`, `MATCH`, `NO_MATCH`.
+          (Optional) `headers` - Inspect request headers. `headers` as defined below.
+            (Required) `match_scope` - Header components to inspect. Valid values are `ALL`, `KEY`, `VALUE`.
+            (Required) `oversize_handling` - Handling for oversized headers. Valid values are `CONTINUE`, `MATCH`, `NO_MATCH`.
+            (Required) `match_pattern` - Configure exactly one of `all = {}`, `included_headers` (a list of header names), or `excluded_headers` (a list of header names).
+          (Optional) `ja3_fingerprint` - Inspect the JA3 fingerprint. Requires `positional_constraint = "EXACTLY"`. `ja3_fingerprint` as defined below.
+            (Required) `fallback_behavior` - Result when the fingerprint cannot be calculated. Valid values are `MATCH`, `NO_MATCH`.
+          (Optional) `ja4_fingerprint` - Inspect the JA4 fingerprint. Requires `positional_constraint = "EXACTLY"`. `ja4_fingerprint` as defined below.
+            (Required) `fallback_behavior` - Result when the fingerprint cannot be calculated. Valid values are `MATCH`, `NO_MATCH`.
+          (Optional) `json_body` - Inspect the JSON request body. `json_body` as defined below.
+            (Required) `match_scope` - JSON components to inspect. Valid values are `ALL`, `KEY`, `VALUE`.
+            (Required) `match_pattern` - Configure exactly one of `all = {}` or `included_paths` (a list of JSON pointers, for example `/user/name`).
+            (Optional) `invalid_fallback_behavior` - Handling for invalid JSON. Valid values are `EVALUATE_AS_STRING`, `MATCH`, `NO_MATCH`. If omitted, AWS WAF evaluates only the JSON it successfully parsed.
+            (Optional) `oversize_handling` - Handling for an oversized JSON body. Valid values are `CONTINUE`, `MATCH`, `NO_MATCH`. Defaults to the provider's default (`CONTINUE`).
+          (Optional) `method` - Inspect the HTTP method. Set to `{}`.
+          (Optional) `query_string` - Inspect the query string. Set to `{}`.
+          (Optional) `single_header` - Inspect a single header. `single_header` as defined below.
+            (Required) `name` - The header name in lowercase.
+          (Optional) `single_query_argument` - Inspect a single query argument. `single_query_argument` as defined below.
+            (Required) `name` - The query argument name in lowercase.
+          (Optional) `uri_fragment` - Inspect the URI fragment. `uri_fragment` as defined below.
+            (Optional) `fallback_behavior` - Result when the URI fragment is unavailable. Valid values are `MATCH`, `NO_MATCH`. If omitted, AWS WAF supplies the default.
+          (Optional) `uri_path` - Inspect the URI path. Set to `{}`.
+        (Optional) `text_transformations` - A non-empty list of transformations applied before matching. Defaults to `[{ priority = 0, type = "NONE" }]`. Each item as defined below.
+          (Required) `priority` - A non-negative, unique priority. Lower values are applied first.
+          (Required) `type` - An AWS WAF text transformation type, for example `NONE`, `LOWERCASE`, `URL_DECODE`, or `HTML_ENTITY_DECODE`.
+        (Optional) `pre_parse_text_transformations` - A list of up to 10 transformations applied to the raw query string before parsing. Only supported with `single_query_argument` or `all_query_arguments`. Defaults to `[]`. Each item as defined below. Requires AWS provider 6.59 or later.
+          (Required) `priority` - A non-negative, unique priority. Lower values are applied first.
+          (Required) `type` - Valid values are `NONE`, `URL_DECODE`, `URL_DECODE_UNI`, `COMBINE_DUPLICATE_QUERY_ARGS_BY_COMMA`, `REPLACE_SEMICOLONS_WITH_AMPERSANDS`.
       (Optional) `geo_match` - A rule statement that labels web requests by country and region and that matches against web requests based on country code. A geo match rule labels every request that it inspects regardless of whether it finds a match. `geo_match` as defined below.
         (Required) `country_codes` - A set of two-character country codes, for example, `US` or `CN`.
         (Optional) `forwarded_ip_header` - A configuration for inspecting IP addresses in an HTTP header instead of using the IP address that's reported by the web request origin. `forwarded_ip_header` as defined below.
