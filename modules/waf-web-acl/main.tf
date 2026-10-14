@@ -504,6 +504,25 @@ resource "aws_wafv2_web_acl" "this" {
                   }
                 }
 
+                dynamic "geo_match_statement" {
+                  for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                  iterator = geo_match
+
+                  content {
+                    country_codes = geo_match.value.country_codes
+
+                    dynamic "forwarded_ip_config" {
+                      for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                      iterator = header
+
+                      content {
+                        header_name       = try(header.value.name, "X-Forwarded-For")
+                        fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                      }
+                    }
+                  }
+                }
+
                 dynamic "ip_set_reference_statement" {
                   for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -677,6 +696,25 @@ resource "aws_wafv2_web_acl" "this" {
                               content {
                                 priority = transformation.value.priority
                                 type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
+                        dynamic "geo_match_statement" {
+                          for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                          iterator = geo_match
+
+                          content {
+                            country_codes = geo_match.value.country_codes
+
+                            dynamic "forwarded_ip_config" {
+                              for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
                               }
                             }
                           }
@@ -863,6 +901,25 @@ resource "aws_wafv2_web_acl" "this" {
                           }
                         }
 
+                        dynamic "geo_match_statement" {
+                          for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                          iterator = geo_match
+
+                          content {
+                            country_codes = geo_match.value.country_codes
+
+                            dynamic "forwarded_ip_config" {
+                              for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -1039,6 +1096,25 @@ resource "aws_wafv2_web_acl" "this" {
                               content {
                                 priority = transformation.value.priority
                                 type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
+                        dynamic "geo_match_statement" {
+                          for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                          iterator = geo_match
+
+                          content {
+                            country_codes = geo_match.value.country_codes
+
+                            dynamic "forwarded_ip_config" {
+                              for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
                               }
                             }
                           }
@@ -1230,6 +1306,25 @@ resource "aws_wafv2_web_acl" "this" {
                   }
                 }
 
+                dynamic "geo_match_statement" {
+                  for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                  iterator = geo_match
+
+                  content {
+                    country_codes = geo_match.value.country_codes
+
+                    dynamic "forwarded_ip_config" {
+                      for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                      iterator = header
+
+                      content {
+                        header_name       = try(header.value.name, "X-Forwarded-For")
+                        fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                      }
+                    }
+                  }
+                }
+
                 dynamic "ip_set_reference_statement" {
                   for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -1403,6 +1498,25 @@ resource "aws_wafv2_web_acl" "this" {
                               content {
                                 priority = transformation.value.priority
                                 type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
+                        dynamic "geo_match_statement" {
+                          for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                          iterator = geo_match
+
+                          content {
+                            country_codes = geo_match.value.country_codes
+
+                            dynamic "forwarded_ip_config" {
+                              for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
                               }
                             }
                           }
@@ -1589,6 +1703,25 @@ resource "aws_wafv2_web_acl" "this" {
                           }
                         }
 
+                        dynamic "geo_match_statement" {
+                          for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                          iterator = geo_match
+
+                          content {
+                            country_codes = geo_match.value.country_codes
+
+                            dynamic "forwarded_ip_config" {
+                              for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -1765,6 +1898,25 @@ resource "aws_wafv2_web_acl" "this" {
                               content {
                                 priority = transformation.value.priority
                                 type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
+                        dynamic "geo_match_statement" {
+                          for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                          iterator = geo_match
+
+                          content {
+                            country_codes = geo_match.value.country_codes
+
+                            dynamic "forwarded_ip_config" {
+                              for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
                               }
                             }
                           }
@@ -1956,6 +2108,25 @@ resource "aws_wafv2_web_acl" "this" {
                   }
                 }
 
+                dynamic "geo_match_statement" {
+                  for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                  iterator = geo_match
+
+                  content {
+                    country_codes = geo_match.value.country_codes
+
+                    dynamic "forwarded_ip_config" {
+                      for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                      iterator = header
+
+                      content {
+                        header_name       = try(header.value.name, "X-Forwarded-For")
+                        fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                      }
+                    }
+                  }
+                }
+
                 dynamic "ip_set_reference_statement" {
                   for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -2129,6 +2300,25 @@ resource "aws_wafv2_web_acl" "this" {
                               content {
                                 priority = transformation.value.priority
                                 type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
+                        dynamic "geo_match_statement" {
+                          for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                          iterator = geo_match
+
+                          content {
+                            country_codes = geo_match.value.country_codes
+
+                            dynamic "forwarded_ip_config" {
+                              for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
                               }
                             }
                           }
@@ -2315,6 +2505,25 @@ resource "aws_wafv2_web_acl" "this" {
                           }
                         }
 
+                        dynamic "geo_match_statement" {
+                          for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                          iterator = geo_match
+
+                          content {
+                            country_codes = geo_match.value.country_codes
+
+                            dynamic "forwarded_ip_config" {
+                              for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
+                          }
+                        }
+
                         dynamic "ip_set_reference_statement" {
                           for_each = can(statement.value.ip_set_reference) ? [statement.value.ip_set_reference] : []
 
@@ -2491,6 +2700,25 @@ resource "aws_wafv2_web_acl" "this" {
                               content {
                                 priority = transformation.value.priority
                                 type     = transformation.value.type
+                              }
+                            }
+                          }
+                        }
+
+                        dynamic "geo_match_statement" {
+                          for_each = try(statement.value.geo_match, null) != null ? [statement.value.geo_match] : []
+                          iterator = geo_match
+
+                          content {
+                            country_codes = geo_match.value.country_codes
+
+                            dynamic "forwarded_ip_config" {
+                              for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
                               }
                             }
                           }

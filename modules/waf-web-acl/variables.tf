@@ -130,14 +130,14 @@ variable "rules" {
         (Optional) `pre_parse_text_transformations` - A list of up to 10 transformations applied to the raw query string before parsing. Only supported with `single_query_argument` or `all_query_arguments`. Defaults to `[]`. Each item as defined below. Requires AWS provider 6.59 or later.
           (Required) `priority` - A non-negative, unique priority. Lower values are applied first.
           (Required) `type` - Valid values are `NONE`, `URL_DECODE`, `URL_DECODE_UNI`, `COMBINE_DUPLICATE_QUERY_ARGS_BY_COMMA`, `REPLACE_SEMICOLONS_WITH_AMPERSANDS`.
-      (Optional) `geo_match` - A rule statement that labels web requests by country and region and that matches against web requests based on country code. A geo match rule labels every request that it inspects regardless of whether it finds a match. `geo_match` as defined below.
-        (Required) `country_codes` - A set of two-character country codes, for example, `US` or `CN`.
-        (Optional) `forwarded_ip_header` - A configuration for inspecting IP addresses in an HTTP header instead of using the IP address that's reported by the web request origin. `forwarded_ip_header` as defined below.
+      (Optional) `geo_match` - A rule statement that labels web requests by country and region and that matches against web requests based on country code. A geo match rule labels every request that it inspects regardless of whether it finds a match. Supported at the top level and under any `and`, `or`, or `not` combination up to three statement levels. `geo_match` as defined below.
+        (Required) `country_codes` - A non-empty list of two-character country codes, for example, `KR`, `US`, or `CN`.
+        (Optional) `forwarded_ip_header` - A configuration for inspecting the first IP address in an HTTP header instead of using the IP address that's reported by the web request origin. `forwarded_ip_header` as defined below.
           (Optional) `enabled` - Whether to use the specified HTTP header for the IP address. May be inconsistent or modified. Defaults to `false`.
           (Optional) `name` - The name of the HTTP header to use for the IP address. `X-Forwarded-For` (XFF) is the most commonly used header for the client and proxy IP addresses. Defaults to `X-Forwarded-For`.
           (Optional) `fallback_behavior` - Handling for requests that don't have a valid IP address in the specified header. Note that, if the specified header isn't present at all in the request, AWS WAF doesn't apply the rule to the request. Valid values are `MATCH` or `NO_MATCH`. Defaults to `NO_MATCH`.
-            `MATCH` - Count and rate limit with other requests that are missing their IP address.
-            `NO_MATCH` - Don't apply the rule to the request.
+            `MATCH` - Treat a malformed IP address in the header as matching the geographic statement.
+            `NO_MATCH` - Treat a malformed IP address in the header as not matching the geographic statement.
       (Optional) `ip_set_reference` - A rule statement used to detect web requests coming from particular IP addresses or address ranges. `ip_set_reference` as defined below.
         (Required) `arn` - The ARN of the IP Set to reference.
         (Optional) `forwarded_ip_header` - A configuration for inspecting IP addresses in an HTTP header instead of using the IP address that's reported by the web request origin. `forwarded_ip_header` as defined below.
