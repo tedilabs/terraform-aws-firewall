@@ -110,10 +110,10 @@ output "resource_config" {
 output "resource_associations" {
   description = "The resource associations of the WAF Web ACL."
   value = [
-    for assoc in aws_wafv2_web_acl_association.this :
+    for name, assoc in aws_wafv2_web_acl_association.this :
     {
-      name         = assoc.key
-      resource_arn = assoc.value.resource_arn
+      name         = name
+      resource_arn = assoc.resource_arn
     }
   ]
 }
