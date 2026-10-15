@@ -1,0 +1,15 @@
+dynamic "or_statement" {
+  for_each = try({{src}}.or, null) != null ? [{{src}}.or] : []
+  iterator = {{iterator}}
+
+  content {
+    dynamic "statement" {
+      for_each = try({{iterator}}.value.statements, [])
+      iterator = {{child}}
+
+      content {
+        {{body}}
+      }
+    }
+  }
+}

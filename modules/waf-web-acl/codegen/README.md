@@ -13,7 +13,7 @@ sources below and regenerate.
 | `main.tf.tmpl` | `main.tf` with a `{{rule_statement}}` placeholder for the rule statement. |
 | `statements/<kind>.tf.tmpl` | The block of one leaf statement, reading its input from `{{src}}`. |
 | `statements/<kind>.nested.tf.tmpl` | Optional. Replaces the template above below the top level. |
-| `logical/list.tf.tmpl`, `logical/not.tf.tmpl` | `and`/`or` and `not` statements, wrapping the next level as `{{body}}`. |
+| `logical/<kind>.tf.tmpl` | The block of one logical statement (`and`, `or`, `not`), wrapping the next level as `{{body}}`. |
 | `tests.tftest.hcl.tmpl` | Preamble of the generated position tests. |
 
 ## Usage

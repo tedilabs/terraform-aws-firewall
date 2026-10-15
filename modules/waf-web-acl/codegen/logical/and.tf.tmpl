@@ -1,5 +1,5 @@
-dynamic "{{op}}_statement" {
-  for_each = try({{src}}.{{op}}, null) != null ? [{{src}}.{{op}}] : []
+dynamic "and_statement" {
+  for_each = try({{src}}.and, null) != null ? [{{src}}.and] : []
   iterator = {{iterator}}
 
   content {

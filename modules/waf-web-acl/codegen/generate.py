@@ -89,8 +89,7 @@ def render_statement(grammar, depth, src):
             raise SystemExit(f"{GRAMMAR_FILE.name}: `{kind}` at level {depth} has no level below it")
         child = f"statement_{depth + 1}"
         blocks.append(fill(
-            template("logical/not.tf.tmpl" if kind == "not" else "logical/list.tf.tmpl"),
-            op=kind,
+            template(f"logical/{kind}.tf.tmpl"),
             src=src,
             iterator=f"{kind}_{depth}",
             child=child,
