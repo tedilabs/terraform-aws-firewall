@@ -530,6 +530,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                   content {
                     arn = ip_set_reference.value.arn
+
+                    dynamic "ip_set_forwarded_ip_config" {
+                      for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                      iterator = header
+
+                      content {
+                        header_name       = try(header.value.name, "X-Forwarded-For")
+                        position          = try(header.value.position, "FIRST")
+                        fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                      }
+                    }
                   }
                 }
 
@@ -727,6 +738,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                           content {
                             arn = ip_set_reference.value.arn
+
+                            dynamic "ip_set_forwarded_ip_config" {
+                              for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                position          = try(header.value.position, "FIRST")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
                           }
                         }
                       }
@@ -928,6 +950,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                           content {
                             arn = ip_set_reference.value.arn
+
+                            dynamic "ip_set_forwarded_ip_config" {
+                              for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                position          = try(header.value.position, "FIRST")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
                           }
                         }
                       }
@@ -1129,6 +1162,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                           content {
                             arn = ip_set_reference.value.arn
+
+                            dynamic "ip_set_forwarded_ip_config" {
+                              for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                position          = try(header.value.position, "FIRST")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
                           }
                         }
                       }
@@ -1334,6 +1378,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                   content {
                     arn = ip_set_reference.value.arn
+
+                    dynamic "ip_set_forwarded_ip_config" {
+                      for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                      iterator = header
+
+                      content {
+                        header_name       = try(header.value.name, "X-Forwarded-For")
+                        position          = try(header.value.position, "FIRST")
+                        fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                      }
+                    }
                   }
                 }
 
@@ -1531,6 +1586,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                           content {
                             arn = ip_set_reference.value.arn
+
+                            dynamic "ip_set_forwarded_ip_config" {
+                              for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                position          = try(header.value.position, "FIRST")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
                           }
                         }
                       }
@@ -1732,6 +1798,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                           content {
                             arn = ip_set_reference.value.arn
+
+                            dynamic "ip_set_forwarded_ip_config" {
+                              for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                position          = try(header.value.position, "FIRST")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
                           }
                         }
                       }
@@ -1933,6 +2010,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                           content {
                             arn = ip_set_reference.value.arn
+
+                            dynamic "ip_set_forwarded_ip_config" {
+                              for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                position          = try(header.value.position, "FIRST")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
                           }
                         }
                       }
@@ -2138,6 +2226,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                   content {
                     arn = ip_set_reference.value.arn
+
+                    dynamic "ip_set_forwarded_ip_config" {
+                      for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                      iterator = header
+
+                      content {
+                        header_name       = try(header.value.name, "X-Forwarded-For")
+                        position          = try(header.value.position, "FIRST")
+                        fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                      }
+                    }
                   }
                 }
 
@@ -2335,6 +2434,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                           content {
                             arn = ip_set_reference.value.arn
+
+                            dynamic "ip_set_forwarded_ip_config" {
+                              for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                position          = try(header.value.position, "FIRST")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
                           }
                         }
                       }
@@ -2536,6 +2646,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                           content {
                             arn = ip_set_reference.value.arn
+
+                            dynamic "ip_set_forwarded_ip_config" {
+                              for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                position          = try(header.value.position, "FIRST")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
                           }
                         }
                       }
@@ -2737,6 +2858,17 @@ resource "aws_wafv2_web_acl" "this" {
 
                           content {
                             arn = ip_set_reference.value.arn
+
+                            dynamic "ip_set_forwarded_ip_config" {
+                              for_each = try(ip_set_reference.value.forwarded_ip_header.enabled, false) ? [ip_set_reference.value.forwarded_ip_header] : []
+                              iterator = header
+
+                              content {
+                                header_name       = try(header.value.name, "X-Forwarded-For")
+                                position          = try(header.value.position, "FIRST")
+                                fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+                              }
+                            }
                           }
                         }
                       }
