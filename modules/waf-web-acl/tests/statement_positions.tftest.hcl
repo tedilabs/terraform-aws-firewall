@@ -80,6 +80,17 @@ run "root" {
           }
         }
       },
+      {
+        name            = "managed_rule_group"
+        priority        = 5
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+          }
+        }
+      },
     ]
   }
 
@@ -121,6 +132,14 @@ run "root" {
       alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "label_match"] : length(s.label_match_statement) == 1]),
     ])
     error_message = "`label_match` must render in the root position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "managed_rule_group"]) == 1,
+      alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "managed_rule_group"] : length(s.managed_rule_group_statement) == 1]),
+    ])
+    error_message = "`managed_rule_group` must render in the root position."
   }
 }
 
@@ -1699,5 +1718,1933 @@ run "not_not" {
       alltrue([for s in [for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the not_not position."
+  }
+}
+
+run "scope_down_root" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "asn_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              asn_match = {
+                asn_list = [64496]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "byte_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              byte_match = {
+                search_string         = "/test"
+                positional_constraint = "STARTS_WITH"
+                field_to_match = {
+                  uri_path = {}
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              geo_match = {
+                country_codes = ["KR"]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              ip_set_reference = {
+                arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "label_match"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              label_match = {
+                scope = "LABEL"
+                key   = "test:label"
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length([for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "asn_match"]) == 1,
+      alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "asn_match"] : length(s.asn_match_statement) == 1]),
+    ])
+    error_message = "`asn_match` must render in the scope_down_root position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"]) == 1,
+      alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_root position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"]) == 1,
+      alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_root position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"]) == 1,
+      alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_root position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "label_match"]) == 1,
+      alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "label_match"] : length(s.label_match_statement) == 1]),
+    ])
+    error_message = "`label_match` must render in the scope_down_root position."
+  }
+}
+
+run "scope_down_and" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    byte_match = {
+                      search_string         = "/test"
+                      positional_constraint = "STARTS_WITH"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                  {
+                    byte_match = {
+                      search_string         = "/test"
+                      positional_constraint = "STARTS_WITH"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    geo_match = {
+                      country_codes = ["KR"]
+                    }
+                  },
+                  {
+                    geo_match = {
+                      country_codes = ["KR"]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    ip_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                    }
+                  },
+                  {
+                    ip_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.and_statement[0].statement]) : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.and_statement[0].statement]) : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_and position."
+  }
+}
+
+run "scope_down_and_and" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    and = {
+                      statements = [
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    and = {
+                      statements = [
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    and = {
+                      statements = [
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    and = {
+                      statements = [
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    and = {
+                      statements = [
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    and = {
+                      statements = [
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.and_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.and_statement[0].statement]) : s.and_statement[0].statement]) : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_and_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.and_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.and_statement[0].statement]) : s.and_statement[0].statement]) : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_and_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_and_and position."
+  }
+}
+
+run "scope_down_and_or" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    or = {
+                      statements = [
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    or = {
+                      statements = [
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    or = {
+                      statements = [
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    or = {
+                      statements = [
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    or = {
+                      statements = [
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    or = {
+                      statements = [
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.and_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.and_statement[0].statement]) : s.or_statement[0].statement]) : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_and_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.and_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.and_statement[0].statement]) : s.or_statement[0].statement]) : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_and_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_and_or position."
+  }
+}
+
+run "scope_down_and_not" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    not = {
+                      statement = {
+                        byte_match = {
+                          search_string         = "/test"
+                          positional_constraint = "STARTS_WITH"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    not = {
+                      statement = {
+                        byte_match = {
+                          search_string         = "/test"
+                          positional_constraint = "STARTS_WITH"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    not = {
+                      statement = {
+                        geo_match = {
+                          country_codes = ["KR"]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    not = {
+                      statement = {
+                        geo_match = {
+                          country_codes = ["KR"]
+                        }
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    not = {
+                      statement = {
+                        ip_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    not = {
+                      statement = {
+                        ip_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                        }
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_and_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_and_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_and_not position."
+  }
+}
+
+run "scope_down_or" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    byte_match = {
+                      search_string         = "/test"
+                      positional_constraint = "STARTS_WITH"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                  {
+                    byte_match = {
+                      search_string         = "/test"
+                      positional_constraint = "STARTS_WITH"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    geo_match = {
+                      country_codes = ["KR"]
+                    }
+                  },
+                  {
+                    geo_match = {
+                      country_codes = ["KR"]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    ip_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                    }
+                  },
+                  {
+                    ip_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.or_statement[0].statement]) : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.or_statement[0].statement]) : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_or position."
+  }
+}
+
+run "scope_down_or_and" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    and = {
+                      statements = [
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    and = {
+                      statements = [
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    and = {
+                      statements = [
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    and = {
+                      statements = [
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    and = {
+                      statements = [
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    and = {
+                      statements = [
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.or_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.or_statement[0].statement]) : s.and_statement[0].statement]) : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_or_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.or_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.or_statement[0].statement]) : s.and_statement[0].statement]) : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_or_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_or_and position."
+  }
+}
+
+run "scope_down_or_or" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    or = {
+                      statements = [
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    or = {
+                      statements = [
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          byte_match = {
+                            search_string         = "/test"
+                            positional_constraint = "STARTS_WITH"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    or = {
+                      statements = [
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    or = {
+                      statements = [
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                        {
+                          geo_match = {
+                            country_codes = ["KR"]
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    or = {
+                      statements = [
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    or = {
+                      statements = [
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                        {
+                          ip_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.or_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.or_statement[0].statement]) : s.or_statement[0].statement]) : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_or_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.or_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.or_statement[0].statement]) : s.or_statement[0].statement]) : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_or_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_or_or position."
+  }
+}
+
+run "scope_down_or_not" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    not = {
+                      statement = {
+                        byte_match = {
+                          search_string         = "/test"
+                          positional_constraint = "STARTS_WITH"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    not = {
+                      statement = {
+                        byte_match = {
+                          search_string         = "/test"
+                          positional_constraint = "STARTS_WITH"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    not = {
+                      statement = {
+                        geo_match = {
+                          country_codes = ["KR"]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    not = {
+                      statement = {
+                        geo_match = {
+                          country_codes = ["KR"]
+                        }
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    not = {
+                      statement = {
+                        ip_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    not = {
+                      statement = {
+                        ip_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                        }
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_or_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_or_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_or_not position."
+  }
+}
+
+run "scope_down_not" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  byte_match = {
+                    search_string         = "/test"
+                    positional_constraint = "STARTS_WITH"
+                    field_to_match = {
+                      uri_path = {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  geo_match = {
+                    country_codes = ["KR"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  ip_set_reference = {
+                    arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.not_statement[0].statement[0]] : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.not_statement[0].statement[0]] : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_not position."
+  }
+}
+
+run "scope_down_not_and" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  and = {
+                    statements = [
+                      {
+                        byte_match = {
+                          search_string         = "/test"
+                          positional_constraint = "STARTS_WITH"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                      {
+                        byte_match = {
+                          search_string         = "/test"
+                          positional_constraint = "STARTS_WITH"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  and = {
+                    statements = [
+                      {
+                        geo_match = {
+                          country_codes = ["KR"]
+                        }
+                      },
+                      {
+                        geo_match = {
+                          country_codes = ["KR"]
+                        }
+                      },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  and = {
+                    statements = [
+                      {
+                        ip_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                        }
+                      },
+                      {
+                        ip_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                        }
+                      },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement]) : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_not_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement]) : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_not_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_not_and position."
+  }
+}
+
+run "scope_down_not_or" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  or = {
+                    statements = [
+                      {
+                        byte_match = {
+                          search_string         = "/test"
+                          positional_constraint = "STARTS_WITH"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                      {
+                        byte_match = {
+                          search_string         = "/test"
+                          positional_constraint = "STARTS_WITH"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  or = {
+                    statements = [
+                      {
+                        geo_match = {
+                          country_codes = ["KR"]
+                        }
+                      },
+                      {
+                        geo_match = {
+                          country_codes = ["KR"]
+                        }
+                      },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  or = {
+                    statements = [
+                      {
+                        ip_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                        }
+                      },
+                      {
+                        ip_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                        }
+                      },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement]) : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_not_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement]) : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_not_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_not_or position."
+  }
+}
+
+run "scope_down_not_not" {
+  command = plan
+
+  variables {
+    rules = [
+      {
+        name            = "byte_match"
+        priority        = 0
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  not = {
+                    statement = {
+                      byte_match = {
+                        search_string         = "/test"
+                        positional_constraint = "STARTS_WITH"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "geo_match"
+        priority        = 1
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  not = {
+                    statement = {
+                      geo_match = {
+                        country_codes = ["KR"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "ip_set_reference"
+        priority        = 2
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  not = {
+                    statement = {
+                      ip_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "byte_match"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]] : length(s.byte_match_statement) == 1]),
+    ])
+    error_message = "`byte_match` must render in the scope_down_not_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "geo_match"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]] : length(s.geo_match_statement) == 1]),
+    ])
+    error_message = "`geo_match` must render in the scope_down_not_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
+    ])
+    error_message = "`ip_set_reference` must render in the scope_down_not_not position."
   }
 }

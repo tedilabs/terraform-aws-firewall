@@ -78,8 +78,8 @@ variable "rules" {
     (Required) `name` - A friendly name of the rule. Note that the provider assumes that rules with names matching this pattern, `^ShieldMitigationRuleGroup_<account-id>_<web-acl-guid>_.*`, are AWS-added for automatic application layer DDoS mitigation activities. Such rules will be ignored by the provider unless you explicitly include them in your configuration (for example, by using the AWS CLI to discover their properties and creating matching configuration). However, since these rules are owned and managed by AWS, you may get permission errors.
     (Required) `priority` - The priority of the rule in the web ACL. Rules with a lower priority are evaluated before rules with a higher priority. Valid values are between 0 and 10000.
     (Optional) `labels` - A set of labels to associate with requests that match this rule. Rules that are evaluated later in the same protection pack (web ACL) can reference the labels that this rule adds. A label is a string containing the label name and optional prefix and namespaces. For example, `namespace1:name` or `awswaf:managed:aws:managed-rule-set:namespace1:name`. You can specify up to 5 namespaces in a label. Labels are case sensitive
-    (Required) `action` - The action that AWS WAF should take on a web request when it matches the rule's statement. Valid values are `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, `COUNT`.
-    (Required) `override_action` - The action to take on a web request when it matches the rule's statement. Valid values are `COUNT`, `NONE`.
+    (Optional) `action` - The action that AWS WAF should take on a web request when it matches the rule's statement. Valid values are `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, `COUNT`. Set exactly one of `action` or `override_action`; a rule with a `managed_rule_group` statement requires `override_action`.
+    (Optional) `override_action` - The action to take on a web request that matches a `managed_rule_group` statement, in place of the actions of the rules in the group. Valid values are `COUNT` (only count the matches) and `NONE` (use the actions of the rules in the group). Required for, and only allowed with, a `managed_rule_group` statement.
     (Required) `statement` - A rule statement that defines the inspection criteria. Supports the statement types documented below. Logical operators use `and = { statements = [...] }`, `or = { statements = [...] }`, and `not = { statement = {...} }`, with up to three statement levels including the top-level statement. Each rule can have a completely different statement structure. See: https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statements.html
       (Optional) `asn_match` - A rule statement that inspects web traffic based on the ASN (Autonomous System Number) associated with the request's IP address. An ASN is a unique identifier allocated to each autonomous system (AS) for use in BGP routing. `asn_match` as defined below.
         (Required) `asn_list` - A set of autonomous system numbers (ASNs).
@@ -152,11 +152,28 @@ variable "rules" {
         (Required) `key` - The string to match against the label.
           - If the `scope` indicates `LABEL`, then this specification must include the name and can include any number of preceding namespace specifications and prefix up to providing the fully qualified label name.
           - If the `scope` indicates `NAMESPACE`, then this specification can include any number of contiguous namespace strings, and can include the entire label namespace prefix from the rule group or web ACL where the label originates.
-    (Optional) `custom_request` - A custom request handling configuration. Only used with `ALLOW`, `CAPTCHA`, `CHALLENGE`, or `COUNT` actions. `custom_request` as defined below.
+      (Optional) `managed_rule_group` - A rule statement that runs the rules of a managed rule group. Supported only as the top-level statement of a rule, which must set `override_action` instead of `action`. `managed_rule_group` as defined below.
+        (Required) `vendor_name` - The name of the managed rule group vendor, for example `AWS`.
+        (Required) `name` - The name of the managed rule group, for example `AWSManagedRulesCommonRuleSet`.
+        (Optional) `version` - The version of the managed rule group, for example `Version_1.0`. If not provided, the vendor's default version is used.
+        (Optional) `rule_action_overrides` - A list of up to 100 overrides of the actions of rules in the rule group. Each items of `rule_action_overrides` as defined below.
+          (Required) `name` - The name of the rule in the rule group to override. Each rule can be overridden only once.
+          (Required) `action` - The action to use in place of the rule's action. Valid values are `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, `COUNT`.
+          (Optional) `custom_request` - A custom request handling configuration, as in `rules[].custom_request`. Only used with `ALLOW`, `CAPTCHA`, `CHALLENGE`, or `COUNT` actions.
+          (Optional) `custom_response` - A custom response configuration, as in `rules[].custom_response`. Only used with `BLOCK` action.
+        (Optional) `scope_down` - A statement that narrows the web requests that the rule group inspects to those that match it. Supports the same statement types and nesting as `statement`, except `managed_rule_group`.
+        (Optional) `config` - A configuration of the managed rule group. `config` as defined below.
+          (Optional) `anti_ddos` - A configuration of the `AWSManagedRulesAntiDDoSRuleSet` rule group. Only used with that rule group. `anti_ddos` as defined below.
+            (Optional) `sensitivity_to_block` - The sensitivity that the `DDoSRequests` rule uses to match requests against the DDoS suspicion labels. Valid values are `LOW`, `MEDIUM`, `HIGH`. Defaults to `LOW`.
+            (Required) `challenge` - A configuration of the `ChallengeAllDuringEvent` and `ChallengeDDoSRequests` rules, which send a silent browser challenge during a DDoS attack. `challenge` as defined below.
+              (Required) `enabled` - Whether the rule group evaluates the challenge rules.
+              (Optional) `sensitivity` - The sensitivity that the `ChallengeDDoSRequests` rule uses to match requests against the DDoS suspicion labels. Valid values are `LOW`, `MEDIUM`, `HIGH`. Defaults to `HIGH`.
+              (Optional) `exempt_uri_regexes` - A list of up to 5 regular expressions. Requests whose URI matches one of them are not challenged, for requests that can't handle a silent browser challenge such as API calls.
+    (Optional) `custom_request` - A custom request handling configuration. Only used with `ALLOW`, `CAPTCHA`, `CHALLENGE`, or `COUNT` actions, and not allowed with `override_action`. `custom_request` as defined below.
       (Optional) `headers` - A list of custom HTTP headers to insert into the request. Each items of `headers` block as defined below.
         (Required) `name` - The name of the custom HTTP header. AWS WAF prefixes this with `x-amzn-waf-`.
         (Required) `value` - The value of the custom HTTP header.
-    (Optional) `custom_response` - A custom response configuration. Only used with `BLOCK` action. `custom_response` as defined below.
+    (Optional) `custom_response` - A custom response configuration. Only used with `BLOCK` action, and not allowed with `override_action`. `custom_response` as defined below.
       (Required) `status_code` - The HTTP status code to return to the client.
       (Optional) `headers` - A list of custom HTTP headers to include in the response. Each items of `headers` block as defined below.
         (Required) `name` - The name of the custom HTTP header. AWS WAF prefixes this with `x-amzn-waf-`.
@@ -225,11 +242,24 @@ variable "rules" {
       alltrue([
         can(rule.name),
         can(rule.priority),
-        can(rule.action),
         can(rule.statement)
       ])
     ])
-    error_message = "Each rule must have required fields: `name`, `priority`, `action`, and `statement`."
+    error_message = "Each rule must have required fields: `name`, `priority`, and `statement`."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      (try(rule.action, null) != null) != (try(rule.override_action, null) != null)
+    ])
+    error_message = "Each rule must set exactly one of `action` or `override_action`."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      (try(rule.override_action, null) != null) == (try(rule.statement.managed_rule_group, null) != null)
+    ])
+    error_message = "A rule with a `managed_rule_group` statement must set `override_action` instead of `action`, and only such a rule can set `override_action`."
   }
   validation {
     condition = alltrue([
@@ -253,8 +283,79 @@ variable "rules" {
     condition = alltrue([
       for rule in var.rules :
       contains(["ALLOW", "BLOCK", "CAPTCHA", "CHALLENGE", "COUNT"], rule.action)
+      if try(rule.action, null) != null
     ])
     error_message = "Valid values for `rules[].action` are `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, or `COUNT`."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      contains(["COUNT", "NONE"], rule.override_action)
+      if try(rule.override_action, null) != null
+    ])
+    error_message = "Valid values for `rules[].override_action` are `COUNT` or `NONE`."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      try(rule.custom_request, null) == null && try(rule.custom_response, null) == null
+      if try(rule.override_action, null) != null
+    ])
+    error_message = "A rule with `override_action` cannot set `custom_request` or `custom_response`. Use `managed_rule_group.rule_action_overrides` instead."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      can(tostring(rule.statement.managed_rule_group.vendor_name)) && can(tostring(rule.statement.managed_rule_group.name))
+      if try(rule.statement.managed_rule_group, null) != null
+    ])
+    error_message = "The `rules[].statement.managed_rule_group` must have `vendor_name` and `name` as strings."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      alltrue([
+        length(rule.statement.managed_rule_group.rule_action_overrides) <= 100,
+        alltrue([
+          for override in rule.statement.managed_rule_group.rule_action_overrides :
+          can(tostring(override.name)) && contains(["ALLOW", "BLOCK", "CAPTCHA", "CHALLENGE", "COUNT"], try(override.action, ""))
+        ]),
+        length(distinct([
+          for override in rule.statement.managed_rule_group.rule_action_overrides :
+          try(override.name, "")
+        ])) == length(rule.statement.managed_rule_group.rule_action_overrides),
+      ])
+      if try(rule.statement.managed_rule_group.rule_action_overrides, null) != null
+    ])
+    error_message = "The `rules[].statement.managed_rule_group.rule_action_overrides` must be a list of up to 100 items with unique `name`s and an `action` of `ALLOW`, `BLOCK`, `CAPTCHA`, `CHALLENGE`, or `COUNT`."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      alltrue([
+        alltrue([
+          for key, value in rule.statement.managed_rule_group.config :
+          key == "anti_ddos"
+          if value != null
+        ]),
+        try(rule.statement.managed_rule_group.config.anti_ddos, null) == null || rule.statement.managed_rule_group.name == "AWSManagedRulesAntiDDoSRuleSet",
+      ])
+      if try(rule.statement.managed_rule_group.config, null) != null
+    ])
+    error_message = "The `rules[].statement.managed_rule_group.config` supports only `anti_ddos`, which is only for the `AWSManagedRulesAntiDDoSRuleSet` rule group."
+  }
+  validation {
+    condition = alltrue([
+      for rule in var.rules :
+      alltrue([
+        can(tobool(rule.statement.managed_rule_group.config.anti_ddos.challenge.enabled)),
+        contains(["LOW", "MEDIUM", "HIGH"], coalesce(try(rule.statement.managed_rule_group.config.anti_ddos.sensitivity_to_block, null), "LOW")),
+        contains(["LOW", "MEDIUM", "HIGH"], coalesce(try(rule.statement.managed_rule_group.config.anti_ddos.challenge.sensitivity, null), "HIGH")),
+        length(try(rule.statement.managed_rule_group.config.anti_ddos.challenge.exempt_uri_regexes, [])) <= 5,
+      ])
+      if try(rule.statement.managed_rule_group.config.anti_ddos, null) != null
+    ])
+    error_message = "The `rules[].statement.managed_rule_group.config.anti_ddos` requires a boolean `challenge.enabled`. Valid values for `sensitivity_to_block` and `challenge.sensitivity` are `LOW`, `MEDIUM`, or `HIGH`, and `challenge.exempt_uri_regexes` can have up to 5 items."
   }
   validation {
     condition = alltrue([
