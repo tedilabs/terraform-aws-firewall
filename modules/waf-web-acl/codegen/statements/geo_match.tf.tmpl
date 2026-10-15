@@ -1,0 +1,18 @@
+dynamic "geo_match_statement" {
+  for_each = try({{src}}.geo_match, null) != null ? [{{src}}.geo_match] : []
+  iterator = geo_match
+
+  content {
+    country_codes = geo_match.value.country_codes
+
+    dynamic "forwarded_ip_config" {
+      for_each = try(geo_match.value.forwarded_ip_header.enabled, false) ? [geo_match.value.forwarded_ip_header] : []
+      iterator = header
+
+      content {
+        header_name       = try(header.value.name, "X-Forwarded-For")
+        fallback_behavior = try(header.value.fallback_behavior, "NO_MATCH")
+      }
+    }
+  }
+}

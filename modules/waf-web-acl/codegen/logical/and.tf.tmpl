@@ -1,0 +1,15 @@
+dynamic "and_statement" {
+  for_each = try({{src}}.and, null) != null ? [{{src}}.and] : []
+  iterator = {{iterator}}
+
+  content {
+    dynamic "statement" {
+      for_each = try({{iterator}}.value.statements, [])
+      iterator = {{child}}
+
+      content {
+        {{body}}
+      }
+    }
+  }
+}
