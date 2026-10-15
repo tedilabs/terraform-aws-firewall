@@ -1,0 +1,15 @@
+dynamic "not_statement" {
+  for_each = try({{src}}.not, null) != null ? [{{src}}.not] : []
+  iterator = {{iterator}}
+
+  content {
+    dynamic "statement" {
+      for_each = try({{iterator}}.value.statement, null) != null ? [{{iterator}}.value.statement] : []
+      iterator = {{child}}
+
+      content {
+        {{body}}
+      }
+    }
+  }
+}

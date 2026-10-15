@@ -1,0 +1,2 @@
+modules/waf-web-acl/main.tf linguist-generated=true
+modules/waf-web-acl/tests/statement_positions.tftest.hcl linguist-generated=true

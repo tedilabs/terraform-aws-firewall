@@ -1,0 +1,8 @@
+dynamic "ip_set_reference_statement" {
+  for_each = try({{src}}.ip_set_reference, null) != null ? [{{src}}.ip_set_reference] : []
+  iterator = ip_set_reference
+
+  content {
+    arn = ip_set_reference.value.arn
+  }
+}

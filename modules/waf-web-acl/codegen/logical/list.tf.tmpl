@@ -1,0 +1,15 @@
+dynamic "{{op}}_statement" {
+  for_each = try({{src}}.{{op}}, null) != null ? [{{src}}.{{op}}] : []
+  iterator = {{iterator}}
+
+  content {
+    dynamic "statement" {
+      for_each = try({{iterator}}.value.statements, [])
+      iterator = {{child}}
+
+      content {
+        {{body}}
+      }
+    }
+  }
+}
