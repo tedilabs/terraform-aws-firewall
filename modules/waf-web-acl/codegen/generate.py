@@ -46,6 +46,7 @@ LEAF_FIXTURES = {
         "arn": "arn:aws:wafv2:us-east-1:123456789012:regional/ipset/test/12345678-1234-1234-1234-123456789012",
     },
     "label_match": {"scope": "LABEL", "key": "test:label"},
+    "managed_rule_group": {"vendor_name": "AWS", "name": "AWSManagedRulesCommonRuleSet"},
 }
 
 # A placeholder alone on its line indents every line of its (multi-line) value to
@@ -57,12 +58,16 @@ PLACEHOLDER = re.compile(
 
 
 def fill(template, **values):
+    """Replace placeholders. A callable value is called only if its placeholder is used."""
+    def value(name):
+        return values[name]() if callable(values[name]) else values[name]
+
     def replace(match):
         if match.group("block"):
             indent = match.group("indent")
-            lines = values[match.group("block")].split("\n")
+            lines = value(match.group("block")).split("\n")
             return "\n".join(indent + line if line else line for line in lines)
-        return values[match.group("inline")]
+        return value(match.group("inline"))
 
     return PLACEHOLDER.sub(replace, template)
 
@@ -71,22 +76,34 @@ def template(name):
     return (CODEGEN_DIR / name).read_text().rstrip("\n")
 
 
-def render_statement(grammar, depth, src):
-    """Render every statement allowed at `depth`, each reading its input from `src`."""
+def partials(grammar):
+    """Shared blocks that any template may place by name."""
+    return {
+        "rule_action": lambda: fill(template("action.tf.tmpl"), action="action.value", handling="rule.value"),
+        "override_action_to_use": lambda: fill(
+            template("action.tf.tmpl"), action="override.value.action", handling="override.value",
+        ),
+        "scope_down": lambda: render_statement(grammar, "scope_down", 1, "scope_down.value"),
+    }
+
+
+def render_statement(grammar, context, depth, src):
+    """Render every statement that `context` allows at `depth`, each reading its input from `src`."""
+    levels = grammar[context]
     blocks = []
-    for kind in grammar[depth - 1]:
+    for kind in levels[depth - 1]:
         if kind not in LOGICAL_STATEMENTS:
-            blocks.append(fill(template(f"statements/{kind}.tf.tmpl"), src=src))
+            blocks.append(fill(template(f"statements/{kind}.tf.tmpl"), src=src, **partials(grammar)))
             continue
-        if depth == len(grammar):
-            raise SystemExit(f"{GRAMMAR_FILE.name}: `{kind}` at level {depth} has no level below it")
+        if depth == len(levels):
+            raise SystemExit(f"{GRAMMAR_FILE.name}: `{context}` allows `{kind}` at level {depth}, the last level")
         child = f"statement_{depth + 1}"
         blocks.append(fill(
             template(f"logical/{kind}.tf.tmpl"),
             src=src,
             iterator=f"{kind}_{depth}",
             child=child,
-            body=render_statement(grammar, depth + 1, f"{child}.value"),
+            body=render_statement(grammar, context, depth + 1, f"{child}.value"),
         ))
     return "\n\n".join(blocks)
 
@@ -94,7 +111,8 @@ def render_statement(grammar, depth, src):
 def render_main(grammar):
     return HEADER + fill(
         template("main.tf.tmpl"),
-        rule_statement=render_statement(grammar["rule"], 1, "rule.value.statement"),
+        rule_statement=lambda: render_statement(grammar, "rule", 1, "rule.value.statement"),
+        **partials(grammar),
     )
 
 
@@ -116,9 +134,26 @@ def wrap(statement, path):
     return statement
 
 
-def rendered(rule_name, path):
+# Where the position tests put the statements of each grammar context: how a rule
+# statement wraps them, and the planned block they start from.
+TEST_CONTEXTS = {
+    "rule": {
+        "statement": lambda statement: statement,
+        "planned": "rule.statement[0]",
+    },
+    "scope_down": {
+        "statement": lambda statement: {
+            "managed_rule_group": dict(LEAF_FIXTURES["managed_rule_group"], scope_down=statement),
+        },
+        "planned": "rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0]",
+    },
+}
+
+
+def rendered(context, rule_name, path):
     """An expression listing the planned statement blocks reached through `path`."""
-    expr = f'[for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "{rule_name}"]'
+    planned = TEST_CONTEXTS[context]["planned"]
+    expr = f'[for rule in aws_wafv2_web_acl.this.rule : {planned} if rule.name == "{rule_name}"]'
     for op in path:
         if op == "not":
             expr = f"[for s in {expr} : s.not_statement[0].statement[0]]"
@@ -142,39 +177,45 @@ def hcl(value, indent=0):
     return json.dumps(value)
 
 
+def test_rule(context, kind, priority, path):
+    statement = TEST_CONTEXTS[context]["statement"](wrap({kind: LEAF_FIXTURES[kind]}, path))
+    rule = {"name": kind, "priority": priority}
+    if "managed_rule_group" in statement:
+        rule["override_action"] = "NONE"
+    else:
+        rule["action"] = "BLOCK"
+    rule["statement"] = statement
+    return rule
+
+
 def render_tests(grammar):
     runs = []
-    for path, kinds in positions(grammar["rule"]):
-        position = "_".join(path) or "root"
-        rules = [
-            {
-                "name": kind,
-                "priority": priority,
-                "action": "BLOCK",
-                "statement": wrap({kind: LEAF_FIXTURES[kind]}, path),
-            }
-            for priority, kind in enumerate(kinds)
-        ]
-        count = 2 ** sum(op != "not" for op in path)
-        asserts = "\n\n".join(
-            f"  assert {{\n"
-            f"    condition = alltrue([\n"
-            f"      length({rendered(kind, path)}) == {count},\n"
-            f"      alltrue([for s in {rendered(kind, path)} : length(s.{kind}_statement) == 1]),\n"
-            f"    ])\n"
-            f'    error_message = "`{kind}` must render in the {position} position."\n'
-            f"  }}"
-            for kind in kinds
-        )
-        runs.append(
-            f'run "{position}" {{\n'
-            f"  command = plan\n\n"
-            f"  variables {{\n"
-            f"    rules = {hcl(rules, 2)}\n"
-            f"  }}\n\n"
-            f"{asserts}\n"
-            f"}}\n"
-        )
+    for context in TEST_CONTEXTS:
+        for path, kinds in positions(grammar[context]):
+            position = "_".join(path) or "root"
+            if context != "rule":
+                position = f"{context}_{position}"
+            rules = [test_rule(context, kind, priority, path) for priority, kind in enumerate(kinds)]
+            count = 2 ** sum(op != "not" for op in path)
+            asserts = "\n\n".join(
+                f"  assert {{\n"
+                f"    condition = alltrue([\n"
+                f"      length({rendered(context, kind, path)}) == {count},\n"
+                f"      alltrue([for s in {rendered(context, kind, path)} : length(s.{kind}_statement) == 1]),\n"
+                f"    ])\n"
+                f'    error_message = "`{kind}` must render in the {position} position."\n'
+                f"  }}"
+                for kind in kinds
+            )
+            runs.append(
+                f'run "{position}" {{\n'
+                f"  command = plan\n\n"
+                f"  variables {{\n"
+                f"    rules = {hcl(rules, 2)}\n"
+                f"  }}\n\n"
+                f"{asserts}\n"
+                f"}}\n"
+            )
     return HEADER + template("tests.tftest.hcl.tmpl") + "\n\n" + "\n".join(runs)
 
 

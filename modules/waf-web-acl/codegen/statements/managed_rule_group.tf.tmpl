@@ -1,0 +1,59 @@
+dynamic "managed_rule_group_statement" {
+  for_each = try({{src}}.managed_rule_group, null) != null ? [{{src}}.managed_rule_group] : []
+  iterator = managed_rule_group
+
+  content {
+    vendor_name = managed_rule_group.value.vendor_name
+    name        = managed_rule_group.value.name
+    version     = try(managed_rule_group.value.version, null)
+
+    dynamic "rule_action_override" {
+      for_each = try(managed_rule_group.value.rule_action_overrides, [])
+      iterator = override
+
+      content {
+        name = override.value.name
+
+        action_to_use {
+          {{override_action_to_use}}
+        }
+      }
+    }
+
+    dynamic "managed_rule_group_configs" {
+      for_each = try(managed_rule_group.value.config.anti_ddos, null) != null ? [managed_rule_group.value.config.anti_ddos] : []
+      iterator = anti_ddos
+
+      content {
+        aws_managed_rules_anti_ddos_rule_set {
+          sensitivity_to_block = try(anti_ddos.value.sensitivity_to_block, null)
+
+          client_side_action_config {
+            challenge {
+              usage_of_action = anti_ddos.value.challenge.enabled ? "ENABLED" : "DISABLED"
+              sensitivity     = try(anti_ddos.value.challenge.sensitivity, null)
+
+              dynamic "exempt_uri_regular_expression" {
+                for_each = try(anti_ddos.value.challenge.exempt_uri_regexes, [])
+                iterator = regex
+
+                content {
+                  regex_string = regex.value
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    dynamic "scope_down_statement" {
+      for_each = try(managed_rule_group.value.scope_down, null) != null ? [managed_rule_group.value.scope_down] : []
+      iterator = scope_down
+
+      content {
+        {{scope_down}}
+      }
+    }
+  }
+}

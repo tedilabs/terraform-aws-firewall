@@ -111,124 +111,26 @@ resource "aws_wafv2_web_acl" "this" {
 
       ## Action
       dynamic "action" {
-        for_each = [rule.value.action]
+        for_each = try(rule.value.action, null) != null ? [rule.value.action] : []
 
         content {
-          dynamic "allow" {
-            for_each = action.value == "ALLOW" ? ["go"] : []
+          {{rule_action}}
+        }
+      }
 
-            content {
-              dynamic "custom_request_handling" {
-                for_each = try(rule.value.custom_request, null) != null ? [rule.value.custom_request] : []
-                iterator = request
+      dynamic "override_action" {
+        for_each = try(rule.value.override_action, null) != null ? [rule.value.override_action] : []
 
-                content {
-                  dynamic "insert_header" {
-                    for_each = try(request.value.headers, [])
-                    iterator = header
-
-                    content {
-                      name  = header.value.name
-                      value = header.value.value
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          dynamic "block" {
-            for_each = action.value == "BLOCK" ? ["go"] : []
-
-            content {
-              dynamic "custom_response" {
-                for_each = try(rule.value.custom_response, null) != null ? [rule.value.custom_response] : []
-                iterator = response
-
-                content {
-                  response_code = response.value.status_code
-
-                  dynamic "response_header" {
-                    for_each = try(response.value.headers, [])
-                    iterator = header
-
-                    content {
-                      name  = header.value.name
-                      value = header.value.value
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          dynamic "captcha" {
-            for_each = action.value == "CAPTCHA" ? ["go"] : []
-
-            content {
-              dynamic "custom_request_handling" {
-                for_each = try(rule.value.custom_request, null) != null ? [rule.value.custom_request] : []
-                iterator = request
-
-                content {
-                  dynamic "insert_header" {
-                    for_each = try(request.value.headers, [])
-                    iterator = header
-
-                    content {
-                      name  = header.value.name
-                      value = header.value.value
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          dynamic "challenge" {
-            for_each = action.value == "CHALLENGE" ? ["go"] : []
-
-            content {
-              dynamic "custom_request_handling" {
-                for_each = try(rule.value.custom_request, null) != null ? [rule.value.custom_request] : []
-                iterator = request
-
-                content {
-                  dynamic "insert_header" {
-                    for_each = try(request.value.headers, [])
-                    iterator = header
-
-                    content {
-                      name  = header.value.name
-                      value = header.value.value
-                    }
-                  }
-                }
-              }
-            }
-          }
-
+        content {
           dynamic "count" {
-            for_each = action.value == "COUNT" ? ["go"] : []
+            for_each = override_action.value == "COUNT" ? ["go"] : []
 
-            content {
-              dynamic "custom_request_handling" {
-                for_each = try(rule.value.custom_request, null) != null ? [rule.value.custom_request] : []
-                iterator = request
+            content {}
+          }
+          dynamic "none" {
+            for_each = override_action.value == "NONE" ? ["go"] : []
 
-                content {
-                  dynamic "insert_header" {
-                    for_each = try(request.value.headers, [])
-                    iterator = header
-
-                    content {
-                      name  = header.value.name
-                      value = header.value.value
-                    }
-                  }
-                }
-              }
-            }
+            content {}
           }
         }
       }
