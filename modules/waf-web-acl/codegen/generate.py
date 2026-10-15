@@ -71,19 +71,12 @@ def template(name):
     return (CODEGEN_DIR / name).read_text().rstrip("\n")
 
 
-def leaf_template(kind, depth):
-    # `<kind>.nested.tf.tmpl`, when present, renders the statement below the top level.
-    if depth > 1 and (CODEGEN_DIR / "statements" / f"{kind}.nested.tf.tmpl").exists():
-        return template(f"statements/{kind}.nested.tf.tmpl")
-    return template(f"statements/{kind}.tf.tmpl")
-
-
 def render_statement(grammar, depth, src):
     """Render every statement allowed at `depth`, each reading its input from `src`."""
     blocks = []
     for kind in grammar[depth - 1]:
         if kind not in LOGICAL_STATEMENTS:
-            blocks.append(fill(leaf_template(kind, depth), src=src))
+            blocks.append(fill(template(f"statements/{kind}.tf.tmpl"), src=src))
             continue
         if depth == len(grammar):
             raise SystemExit(f"{GRAMMAR_FILE.name}: `{kind}` at level {depth} has no level below it")
