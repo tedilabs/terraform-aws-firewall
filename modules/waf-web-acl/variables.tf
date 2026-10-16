@@ -169,6 +169,16 @@ variable "rules" {
               (Required) `enabled` - Whether the rule group evaluates the challenge rules.
               (Optional) `sensitivity` - The sensitivity that the `ChallengeDDoSRequests` rule uses to match requests against the DDoS suspicion labels. Valid values are `LOW`, `MEDIUM`, `HIGH`. Defaults to `HIGH`.
               (Optional) `exempt_uri_regexes` - A list of up to 5 regular expressions. Requests whose URI matches one of them are not challenged, for requests that can't handle a silent browser challenge such as API calls.
+      (Optional) `regex_match` - A rule statement that searches a request component for a match against a regular expression. Supported at the top level and under any `and`, `or`, or `not` combination up to three statement levels. `regex_match` as defined below.
+        (Required) `regex_string` - The regular expression to match, from 1 to 512 characters.
+        (Required) `field_to_match` - The request component to inspect, as in `byte_match`.
+        (Optional) `text_transformations` - The transformations applied before matching, as in `byte_match`. Defaults to `[{ priority = 0, type = "NONE" }]`.
+        (Optional) `pre_parse_text_transformations` - The transformations applied to the raw query string before parsing, as in `byte_match`. Defaults to `[]`.
+      (Optional) `regex_pattern_set_reference` - A rule statement that searches a request component for a match against any regular expression in a regex pattern set. Supported at the top level and under any `and`, `or`, or `not` combination up to three statement levels. `regex_pattern_set_reference` as defined below.
+        (Required) `arn` - The ARN of the regex pattern set to reference.
+        (Required) `field_to_match` - The request component to inspect, as in `byte_match`.
+        (Optional) `text_transformations` - The transformations applied before matching, as in `byte_match`. Defaults to `[{ priority = 0, type = "NONE" }]`.
+        (Optional) `pre_parse_text_transformations` - The transformations applied to the raw query string before parsing, as in `byte_match`. Defaults to `[]`.
     (Optional) `custom_request` - A custom request handling configuration. Only used with `ALLOW`, `CAPTCHA`, `CHALLENGE`, or `COUNT` actions, and not allowed with `override_action`. `custom_request` as defined below.
       (Optional) `headers` - A list of custom HTTP headers to insert into the request. Each items of `headers` block as defined below.
         (Required) `name` - The name of the custom HTTP header. AWS WAF prefixes this with `x-amzn-waf-`.

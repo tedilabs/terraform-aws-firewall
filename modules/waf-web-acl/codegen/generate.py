@@ -47,7 +47,16 @@ LEAF_FIXTURES = {
     },
     "label_match": {"scope": "LABEL", "key": "test:label"},
     "managed_rule_group": {"vendor_name": "AWS", "name": "AWSManagedRulesCommonRuleSet"},
+    "regex_match": {"regex_string": "^/test/[0-9]+$", "field_to_match": {"uri_path": {}}},
+    "regex_pattern_set_reference": {
+        "arn": "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012",
+        "field_to_match": {"uri_path": {}},
+    },
 }
+
+# Statements that inspect a request component with `field_to_match` and text
+# transformations, which `request_inspection.tf.tmpl` renders for each of them.
+REQUEST_INSPECTING_STATEMENTS = ("byte_match", "regex_match", "regex_pattern_set_reference")
 
 # A placeholder alone on its line indents every line of its (multi-line) value to
 # match; any other placeholder is replaced inline.
@@ -78,13 +87,18 @@ def template(name):
 
 def partials(grammar):
     """Shared blocks that any template may place by name."""
-    return {
+    blocks = {
         "rule_action": lambda: fill(template("action.tf.tmpl"), action="action.value", handling="rule.value"),
         "override_action_to_use": lambda: fill(
             template("action.tf.tmpl"), action="override.value.action", handling="override.value",
         ),
         "scope_down": lambda: render_statement(grammar, "scope_down", 1, "scope_down.value"),
     }
+    for kind in REQUEST_INSPECTING_STATEMENTS:
+        blocks[f"{kind}_request_inspection"] = (
+            lambda kind=kind: fill(template("request_inspection.tf.tmpl"), match=f"{kind}.value")
+        )
+    return blocks
 
 
 def render_statement(grammar, context, depth, src):
