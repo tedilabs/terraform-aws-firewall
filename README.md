@@ -11,9 +11,19 @@ Terraform module which creates firewall related resources on AWS.
 - [dns-firewall-rule-group](./modules/dns-firewall-rule-group)
 - [fms-dns-firewall-policy](./modules/fms-dns-firewall-policy)
 - [network-firewall](./modules/network-firewall)
-- [waf-ip-set](./modules/waf-ip-set)
-- [waf-regex-pattern-set](./modules/waf-regex-pattern-set)
-- [waf-web-acl](./modules/waf-web-acl)
+
+
+## WAF Module Migration
+
+The WAF modules have moved to [tedilabs/terraform-aws-waf](https://github.com/tedilabs/terraform-aws-waf). They are no longer included in this repository. Existing published versions of this package remain available.
+
+| Previous module source | New module source |
+| --- | --- |
+| `tedilabs/firewall/aws//modules/waf-ip-set` | `tedilabs/waf/aws//modules/ip-set` |
+| `tedilabs/firewall/aws//modules/waf-regex-pattern-set` | `tedilabs/waf/aws//modules/regex-pattern-set` |
+| `tedilabs/firewall/aws//modules/waf-web-acl` | `tedilabs/waf/aws//modules/web-acl` |
+
+The new registry sources become available after the WAF package is published. See the [migration guide](https://github.com/tedilabs/terraform-aws-waf#migration-from-terraform-aws-firewall) for Git sources, version selection, Terraform state continuity, and changes to module tags and Resource Group names.
 
 
 ## Target AWS Services
@@ -28,10 +38,6 @@ Terraform Modules from [this package](https://github.com/tedilabs/terraform-aws-
   - Firewall Domain List
 - **AWS VPC Network Firewall**
   - Firewall
-- **AWS WAF (Web Application Firewall)**
-  - IP Set
-  - REGEX Pattern Set
-  - Web ACL
 
 
 ## Usage
