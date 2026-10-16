@@ -1,12 +1,12 @@
 {
   "rule": [
-    ["asn_match", "byte_match", "geo_match", "ip_set_reference", "label_match", "managed_rule_group", "and", "or", "not"],
-    ["byte_match", "geo_match", "ip_set_reference", "and", "or", "not"],
-    ["byte_match", "geo_match", "ip_set_reference"]
+    ["asn_match", "byte_match", "geo_match", "ip_set_reference", "label_match", "managed_rule_group", "regex_match", "regex_pattern_set_reference", "and", "or", "not"],
+    ["byte_match", "geo_match", "ip_set_reference", "regex_match", "regex_pattern_set_reference", "and", "or", "not"],
+    ["byte_match", "geo_match", "ip_set_reference", "regex_match", "regex_pattern_set_reference"]
   ],
   "scope_down": [
-    ["asn_match", "byte_match", "geo_match", "ip_set_reference", "label_match", "and", "or", "not"],
-    ["byte_match", "geo_match", "ip_set_reference", "and", "or", "not"],
-    ["byte_match", "geo_match", "ip_set_reference"]
+    ["asn_match", "byte_match", "geo_match", "ip_set_reference", "label_match", "regex_match", "regex_pattern_set_reference", "and", "or", "not"],
+    ["byte_match", "geo_match", "ip_set_reference", "regex_match", "regex_pattern_set_reference", "and", "or", "not"],
+    ["byte_match", "geo_match", "ip_set_reference", "regex_match", "regex_pattern_set_reference"]
   ]
 }

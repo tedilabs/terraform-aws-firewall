@@ -91,6 +91,32 @@ run "root" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 6
+        action   = "BLOCK"
+        statement = {
+          regex_match = {
+            regex_string = "^/test/[0-9]+$"
+            field_to_match = {
+              uri_path = {}
+            }
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 7
+        action   = "BLOCK"
+        statement = {
+          regex_pattern_set_reference = {
+            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+            field_to_match = {
+              uri_path = {}
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -140,6 +166,22 @@ run "root" {
       alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "managed_rule_group"] : length(s.managed_rule_group_statement) == 1]),
     ])
     error_message = "`managed_rule_group` must render in the root position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"]) == 1,
+      alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the root position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"]) == 1,
+      alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the root position."
   }
 }
 
@@ -219,6 +261,60 @@ run "and" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          and = {
+            statements = [
+              {
+                regex_match = {
+                  regex_string = "^/test/[0-9]+$"
+                  field_to_match = {
+                    uri_path = {}
+                  }
+                }
+              },
+              {
+                regex_match = {
+                  regex_string = "^/test/[0-9]+$"
+                  field_to_match = {
+                    uri_path = {}
+                  }
+                }
+              },
+            ]
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          and = {
+            statements = [
+              {
+                regex_pattern_set_reference = {
+                  arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                  field_to_match = {
+                    uri_path = {}
+                  }
+                }
+              },
+              {
+                regex_pattern_set_reference = {
+                  arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                  field_to_match = {
+                    uri_path = {}
+                  }
+                }
+              },
+            ]
+          }
+        }
+      },
     ]
   }
 
@@ -244,6 +340,22 @@ run "and" {
       alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the and position."
   }
 }
 
@@ -397,6 +509,116 @@ run "and_and" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          and = {
+            statements = [
+              {
+                and = {
+                  statements = [
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+              {
+                and = {
+                  statements = [
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+            ]
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          and = {
+            statements = [
+              {
+                and = {
+                  statements = [
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+              {
+                and = {
+                  statements = [
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+            ]
+          }
+        }
+      },
     ]
   }
 
@@ -422,6 +644,22 @@ run "and_and" {
       alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the and_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.and_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the and_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.and_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the and_and position."
   }
 }
 
@@ -575,6 +813,116 @@ run "and_or" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          and = {
+            statements = [
+              {
+                or = {
+                  statements = [
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+              {
+                or = {
+                  statements = [
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+            ]
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          and = {
+            statements = [
+              {
+                or = {
+                  statements = [
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+              {
+                or = {
+                  statements = [
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+            ]
+          }
+        }
+      },
     ]
   }
 
@@ -600,6 +948,22 @@ run "and_or" {
       alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the and_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.or_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the and_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.or_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the and_or position."
   }
 }
 
@@ -703,6 +1067,76 @@ run "and_not" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          and = {
+            statements = [
+              {
+                not = {
+                  statement = {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                not = {
+                  statement = {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  }
+                }
+              },
+            ]
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          and = {
+            statements = [
+              {
+                not = {
+                  statement = {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                not = {
+                  statement = {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  }
+                }
+              },
+            ]
+          }
+        }
+      },
     ]
   }
 
@@ -728,6 +1162,22 @@ run "and_not" {
       alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the and_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the and_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the and_not position."
   }
 }
 
@@ -807,6 +1257,60 @@ run "or" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          or = {
+            statements = [
+              {
+                regex_match = {
+                  regex_string = "^/test/[0-9]+$"
+                  field_to_match = {
+                    uri_path = {}
+                  }
+                }
+              },
+              {
+                regex_match = {
+                  regex_string = "^/test/[0-9]+$"
+                  field_to_match = {
+                    uri_path = {}
+                  }
+                }
+              },
+            ]
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          or = {
+            statements = [
+              {
+                regex_pattern_set_reference = {
+                  arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                  field_to_match = {
+                    uri_path = {}
+                  }
+                }
+              },
+              {
+                regex_pattern_set_reference = {
+                  arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                  field_to_match = {
+                    uri_path = {}
+                  }
+                }
+              },
+            ]
+          }
+        }
+      },
     ]
   }
 
@@ -832,6 +1336,22 @@ run "or" {
       alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the or position."
   }
 }
 
@@ -985,6 +1505,116 @@ run "or_and" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          or = {
+            statements = [
+              {
+                and = {
+                  statements = [
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+              {
+                and = {
+                  statements = [
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+            ]
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          or = {
+            statements = [
+              {
+                and = {
+                  statements = [
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+              {
+                and = {
+                  statements = [
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+            ]
+          }
+        }
+      },
     ]
   }
 
@@ -1010,6 +1640,22 @@ run "or_and" {
       alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the or_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.and_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the or_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.and_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the or_and position."
   }
 }
 
@@ -1163,6 +1809,116 @@ run "or_or" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          or = {
+            statements = [
+              {
+                or = {
+                  statements = [
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+              {
+                or = {
+                  statements = [
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+            ]
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          or = {
+            statements = [
+              {
+                or = {
+                  statements = [
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+              {
+                or = {
+                  statements = [
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                    {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    },
+                  ]
+                }
+              },
+            ]
+          }
+        }
+      },
     ]
   }
 
@@ -1188,6 +1944,22 @@ run "or_or" {
       alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the or_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.or_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the or_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.or_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the or_or position."
   }
 }
 
@@ -1291,6 +2063,76 @@ run "or_not" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          or = {
+            statements = [
+              {
+                not = {
+                  statement = {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                not = {
+                  statement = {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  }
+                }
+              },
+            ]
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          or = {
+            statements = [
+              {
+                not = {
+                  statement = {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                not = {
+                  statement = {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  }
+                }
+              },
+            ]
+          }
+        }
+      },
     ]
   }
 
@@ -1316,6 +2158,22 @@ run "or_not" {
       alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the or_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the or_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the or_not position."
   }
 }
 
@@ -1370,6 +2228,40 @@ run "not" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          not = {
+            statement = {
+              regex_match = {
+                regex_string = "^/test/[0-9]+$"
+                field_to_match = {
+                  uri_path = {}
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          not = {
+            statement = {
+              regex_pattern_set_reference = {
+                arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                field_to_match = {
+                  uri_path = {}
+                }
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -1395,6 +2287,22 @@ run "not" {
       alltrue([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the not position."
   }
 }
 
@@ -1486,6 +2394,68 @@ run "not_and" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          not = {
+            statement = {
+              and = {
+                statements = [
+                  {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                  {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          not = {
+            statement = {
+              and = {
+                statements = [
+                  {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                  {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -1511,6 +2481,22 @@ run "not_and" {
       alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the not_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the not_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the not_and position."
   }
 }
 
@@ -1602,6 +2588,68 @@ run "not_or" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          not = {
+            statement = {
+              or = {
+                statements = [
+                  {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                  {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          not = {
+            statement = {
+              or = {
+                statements = [
+                  {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                  {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -1627,6 +2675,22 @@ run "not_or" {
       alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the not_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the not_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the not_or position."
   }
 }
 
@@ -1693,6 +2757,48 @@ run "not_not" {
           }
         }
       },
+      {
+        name     = "regex_match"
+        priority = 3
+        action   = "BLOCK"
+        statement = {
+          not = {
+            statement = {
+              not = {
+                statement = {
+                  regex_match = {
+                    regex_string = "^/test/[0-9]+$"
+                    field_to_match = {
+                      uri_path = {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name     = "regex_pattern_set_reference"
+        priority = 4
+        action   = "BLOCK"
+        statement = {
+          not = {
+            statement = {
+              not = {
+                statement = {
+                  regex_pattern_set_reference = {
+                    arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                    field_to_match = {
+                      uri_path = {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -1718,6 +2824,22 @@ run "not_not" {
       alltrue([for s in [for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the not_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]] : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the not_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]] : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the not_not position."
   }
 }
 
@@ -1811,6 +2933,44 @@ run "scope_down_root" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 5
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              regex_match = {
+                regex_string = "^/test/[0-9]+$"
+                field_to_match = {
+                  uri_path = {}
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 6
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              regex_pattern_set_reference = {
+                arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                field_to_match = {
+                  uri_path = {}
+                }
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -1852,6 +3012,22 @@ run "scope_down_root" {
       alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "label_match"] : length(s.label_match_statement) == 1]),
     ])
     error_message = "`label_match` must render in the scope_down_root position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"]) == 1,
+      alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_root position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"]) == 1,
+      alltrue([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_root position."
   }
 }
 
@@ -1949,6 +3125,72 @@ run "scope_down_and" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                  {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                  {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -1974,6 +3216,22 @@ run "scope_down_and" {
       alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_and position."
   }
 }
 
@@ -2145,6 +3403,128 @@ run "scope_down_and_and" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    and = {
+                      statements = [
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    and = {
+                      statements = [
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    and = {
+                      statements = [
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    and = {
+                      statements = [
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -2170,6 +3550,22 @@ run "scope_down_and_and" {
       alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_and_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.and_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_and_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.and_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_and_and position."
   }
 }
 
@@ -2341,6 +3737,128 @@ run "scope_down_and_or" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    or = {
+                      statements = [
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    or = {
+                      statements = [
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    or = {
+                      statements = [
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    or = {
+                      statements = [
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -2366,6 +3884,22 @@ run "scope_down_and_or" {
       alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_and_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.or_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_and_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.or_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_and_or position."
   }
 }
 
@@ -2487,6 +4021,88 @@ run "scope_down_and_not" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    not = {
+                      statement = {
+                        regex_match = {
+                          regex_string = "^/test/[0-9]+$"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    not = {
+                      statement = {
+                        regex_match = {
+                          regex_string = "^/test/[0-9]+$"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              and = {
+                statements = [
+                  {
+                    not = {
+                      statement = {
+                        regex_pattern_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    not = {
+                      statement = {
+                        regex_pattern_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -2512,6 +4128,22 @@ run "scope_down_and_not" {
       alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_and_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_and_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.and_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_and_not position."
   }
 }
 
@@ -2609,6 +4241,72 @@ run "scope_down_or" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                  {
+                    regex_match = {
+                      regex_string = "^/test/[0-9]+$"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                  {
+                    regex_pattern_set_reference = {
+                      arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                      field_to_match = {
+                        uri_path = {}
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -2634,6 +4332,22 @@ run "scope_down_or" {
       alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_or position."
   }
 }
 
@@ -2805,6 +4519,128 @@ run "scope_down_or_and" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    and = {
+                      statements = [
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    and = {
+                      statements = [
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    and = {
+                      statements = [
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    and = {
+                      statements = [
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -2830,6 +4666,22 @@ run "scope_down_or_and" {
       alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_or_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.and_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_or_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.and_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.and_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_or_and position."
   }
 }
 
@@ -3001,6 +4853,128 @@ run "scope_down_or_or" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    or = {
+                      statements = [
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    or = {
+                      statements = [
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_match = {
+                            regex_string = "^/test/[0-9]+$"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    or = {
+                      statements = [
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                  {
+                    or = {
+                      statements = [
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                        {
+                          regex_pattern_set_reference = {
+                            arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                            field_to_match = {
+                              uri_path = {}
+                            }
+                          }
+                        },
+                      ]
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -3026,6 +5000,22 @@ run "scope_down_or_or" {
       alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_or_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.or_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_or_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.or_statement[0].statement])) == 4,
+      alltrue([for s in flatten([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.or_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_or_or position."
   }
 }
 
@@ -3147,6 +5137,88 @@ run "scope_down_or_not" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    not = {
+                      statement = {
+                        regex_match = {
+                          regex_string = "^/test/[0-9]+$"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    not = {
+                      statement = {
+                        regex_match = {
+                          regex_string = "^/test/[0-9]+$"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              or = {
+                statements = [
+                  {
+                    not = {
+                      statement = {
+                        regex_pattern_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    not = {
+                      statement = {
+                        regex_pattern_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      }
+                    }
+                  },
+                ]
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -3172,6 +5244,22 @@ run "scope_down_or_not" {
       alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_or_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_or_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]]) == 2,
+      alltrue([for s in [for s in flatten([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.or_statement[0].statement]) : s.not_statement[0].statement[0]] : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_or_not position."
   }
 }
 
@@ -3244,6 +5332,52 @@ run "scope_down_not" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  regex_match = {
+                    regex_string = "^/test/[0-9]+$"
+                    field_to_match = {
+                      uri_path = {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  regex_pattern_set_reference = {
+                    arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                    field_to_match = {
+                      uri_path = {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -3269,6 +5403,22 @@ run "scope_down_not" {
       alltrue([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_not position."
   }
 }
 
@@ -3378,6 +5528,80 @@ run "scope_down_not_and" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  and = {
+                    statements = [
+                      {
+                        regex_match = {
+                          regex_string = "^/test/[0-9]+$"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                      {
+                        regex_match = {
+                          regex_string = "^/test/[0-9]+$"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  and = {
+                    statements = [
+                      {
+                        regex_pattern_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                      {
+                        regex_pattern_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -3403,6 +5627,22 @@ run "scope_down_not_and" {
       alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_not_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_not_and position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.and_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_not_and position."
   }
 }
 
@@ -3512,6 +5752,80 @@ run "scope_down_not_or" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  or = {
+                    statements = [
+                      {
+                        regex_match = {
+                          regex_string = "^/test/[0-9]+$"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                      {
+                        regex_match = {
+                          regex_string = "^/test/[0-9]+$"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  or = {
+                    statements = [
+                      {
+                        regex_pattern_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                      {
+                        regex_pattern_set_reference = {
+                          arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                          field_to_match = {
+                            uri_path = {}
+                          }
+                        }
+                      },
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -3537,6 +5851,22 @@ run "scope_down_not_or" {
       alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement]) : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_not_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement]) : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_not_or position."
+  }
+
+  assert {
+    condition = alltrue([
+      length(flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement])) == 2,
+      alltrue([for s in flatten([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.or_statement[0].statement]) : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_not_or position."
   }
 }
 
@@ -3621,6 +5951,60 @@ run "scope_down_not_not" {
           }
         }
       },
+      {
+        name            = "regex_match"
+        priority        = 3
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  not = {
+                    statement = {
+                      regex_match = {
+                        regex_string = "^/test/[0-9]+$"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        name            = "regex_pattern_set_reference"
+        priority        = 4
+        override_action = "NONE"
+        statement = {
+          managed_rule_group = {
+            vendor_name = "AWS"
+            name        = "AWSManagedRulesCommonRuleSet"
+            scope_down = {
+              not = {
+                statement = {
+                  not = {
+                    statement = {
+                      regex_pattern_set_reference = {
+                        arn = "arn:aws:wafv2:us-east-1:123456789012:regional/regexpatternset/test/12345678-1234-1234-1234-123456789012"
+                        field_to_match = {
+                          uri_path = {}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
     ]
   }
 
@@ -3646,5 +6030,21 @@ run "scope_down_not_not" {
       alltrue([for s in [for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "ip_set_reference"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]] : length(s.ip_set_reference_statement) == 1]),
     ])
     error_message = "`ip_set_reference` must render in the scope_down_not_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_match"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]] : length(s.regex_match_statement) == 1]),
+    ])
+    error_message = "`regex_match` must render in the scope_down_not_not position."
+  }
+
+  assert {
+    condition = alltrue([
+      length([for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]]) == 1,
+      alltrue([for s in [for s in [for s in [for rule in aws_wafv2_web_acl.this.rule : rule.statement[0].managed_rule_group_statement[0].scope_down_statement[0] if rule.name == "regex_pattern_set_reference"] : s.not_statement[0].statement[0]] : s.not_statement[0].statement[0]] : length(s.regex_pattern_set_reference_statement) == 1]),
+    ])
+    error_message = "`regex_pattern_set_reference` must render in the scope_down_not_not position."
   }
 }

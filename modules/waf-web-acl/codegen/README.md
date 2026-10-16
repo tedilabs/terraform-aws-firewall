@@ -14,6 +14,7 @@ sources below and regenerate.
 | `statements/<kind>.tf.tmpl` | The block of one leaf statement, reading its input from `{{src}}`. |
 | `logical/<kind>.tf.tmpl` | The block of one logical statement (`and`, `or`, `not`), wrapping the next level as `{{body}}`. |
 | `action.tf.tmpl` | The `allow`, `block`, `captcha`, `challenge`, and `count` action blocks, reading the action from `{{action}}` and custom handling from `{{handling}}`. |
+| `request_inspection.tf.tmpl` | The `field_to_match` and text transformation blocks of a statement that inspects a request component, reading them from `{{match}}`. |
 | `tests.tftest.hcl.tmpl` | Preamble of the generated position tests. |
 
 Any template can place these shared blocks by name. Each is rendered only where a
@@ -24,6 +25,7 @@ template uses it.
 | `{{rule_action}}` | `action.tf.tmpl` for the rule `action`. |
 | `{{override_action_to_use}}` | `action.tf.tmpl` for a rule action override of a managed rule group. |
 | `{{scope_down}}` | The statements of the `scope_down` context. |
+| `{{<kind>_request_inspection}}` | `request_inspection.tf.tmpl` for a statement in `REQUEST_INSPECTING_STATEMENTS` of `generate.py`. |
 
 ## Usage
 
