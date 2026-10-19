@@ -1,9 +1,0 @@
-dynamic "label_match_statement" {
-  for_each = try({{src}}.label_match, null) != null ? [{{src}}.label_match] : []
-  iterator = label_match
-
-  content {
-    scope = label_match.value.scope
-    key   = label_match.value.key
-  }
-}
