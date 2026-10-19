@@ -10,7 +10,6 @@ Terraform module which creates firewall related resources on AWS.
 - [dns-firewall-domain-list](./modules/dns-firewall-domain-list)
 - [dns-firewall-rule-group](./modules/dns-firewall-rule-group)
 - [fms-dns-firewall-policy](./modules/fms-dns-firewall-policy)
-- [network-firewall](./modules/network-firewall)
 
 
 ## WAF Module Migration
@@ -36,8 +35,6 @@ Terraform Modules from [this package](https://github.com/tedilabs/terraform-aws-
   - Firewall
   - Firewall Rule Group
   - Firewall Domain List
-- **AWS VPC Network Firewall**
-  - Firewall
 
 
 ## Usage
