@@ -64,9 +64,9 @@ module "rule_group" {
       domain_list = module.domain_list_allowlist.id
       action      = "ALLOW"
     },
-    # AWS recommends running a managed list with the `ALERT` action first, and
-    # switching to `BLOCK` once the CloudWatch metrics and the query logs show
-    # no false positive.
+    # This example uses `BLOCK` directly. AWS recommends running a managed list
+    # with the `ALERT` action first, and switching to `BLOCK` once the CloudWatch
+    # metrics and the query logs show no false positive.
     {
       priority    = 200
       name        = "block-aggregate-threat"

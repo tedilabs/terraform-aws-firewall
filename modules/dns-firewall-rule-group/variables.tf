@@ -26,11 +26,11 @@ variable "rules" {
       `TRUST` - Inspects only the first domain in the redirection chain. You don't need to add the subsequent domains in the redirection chain to the domain list.
     (Required) `action` - The action that DNS Firewall should take on a DNS query when it matches one of the domains in the rule's domain list, or a threat in a DNS Firewall Advanced rule. Valid values are `ALLOW`, `BLOCK`, `ALERT`. `ALLOW` is not valid for DNS Firewall Advanced rules.
     (Optional) `action_parameters` - The configuration block for the parameters of the rule action. Only required with `BLOCK` action. `action_parameters` block as defined below.
-      (Required) `response` - The way that you want DNS Firewall to block the request. Valid values are `NODATA`, `NXDOMAIN`, `OVERRIDE`. `NODATA` indicates that this query was successful, but there is no response available for the query. `NXDOMAIN` indicates that the domain name that's in the query doesn't exist. `OVERRIDE` provides a custom override response to the query. Defaults to `NODATA`.
+      (Optional) `response` - The way that you want DNS Firewall to block the request. Valid values are `NODATA`, `NXDOMAIN`, `OVERRIDE`. `NODATA` indicates that this query was successful, but there is no response available for the query. `NXDOMAIN` indicates that the domain name that's in the query doesn't exist. `OVERRIDE` provides a custom override response to the query. Defaults to `NODATA`.
       (Optional) `override` - The configuration for a custom override response to the query. Only required with `OVERRIDE` block response.
         (Required) `type` - The DNS record's type. This determines the format of the record value that you provided in BlockOverrideDomain. Value values are `CNAME`.
         (Required) `value` - The custom DNS record to send back in response to the query.
-        (Required) `ttl` - The recommended amount of time, in seconds, for the DNS resolver or web browser to cache the provided override record. Minimum value of `0`. Maximum value of `604800`.
+        (Optional) `ttl` - The recommended amount of time, in seconds, for the DNS resolver or web browser to cache the provided override record. Minimum value of `0`. Maximum value of `604800`. Defaults to `0`.
   EOF
   type = list(object({
     priority = number
