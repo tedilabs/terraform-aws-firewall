@@ -28,7 +28,7 @@ variable "rules" {
     (Optional) `action_parameters` - The configuration block for the parameters of the rule action. Only required with `BLOCK` action. `action_parameters` block as defined below.
       (Optional) `response` - The way that you want DNS Firewall to block the request. Valid values are `NODATA`, `NXDOMAIN`, `OVERRIDE`. `NODATA` indicates that this query was successful, but there is no response available for the query. `NXDOMAIN` indicates that the domain name that's in the query doesn't exist. `OVERRIDE` provides a custom override response to the query. Defaults to `NODATA`.
       (Optional) `override` - The configuration for a custom override response to the query. Only required with `OVERRIDE` block response.
-        (Required) `type` - The DNS record's type. This determines the format of the record value that you provided in BlockOverrideDomain. Value values are `CNAME`.
+        (Required) `type` - The DNS record's type. This determines the format of the record value that you provided in BlockOverrideDomain. Valid values are `CNAME`.
         (Required) `value` - The custom DNS record to send back in response to the query.
         (Optional) `ttl` - The recommended amount of time, in seconds, for the DNS resolver or web browser to cache the provided override record. Minimum value of `0`. Maximum value of `604800`. Defaults to `0`.
   EOF
