@@ -52,11 +52,11 @@ variable "rule_groups" {
     condition = alltrue([
       for rule_group in var.rule_groups :
       alltrue([
-        rule_group.priority > 100,
-        rule_group.priority < 9900
+        rule_group.priority >= 100,
+        rule_group.priority <= 9900
       ])
     ])
-    error_message = "Valid value for `rule_group.priority` from `rule_groups` is greater than 100 and less than 9900."
+    error_message = "Valid value for `rule_group.priority` from `rule_groups` is between 100 and 9900."
   }
 }
 
