@@ -32,7 +32,7 @@ variable "fail_open_enabled" {
 
 variable "rule_groups" {
   description = <<EOF
-  (Optional) A list of rule groups associated with the target. Each value of `rule_group` block as defined below.
+  (Optional) A list of rule groups associated with the target. Each item of `rule_groups` block as defined below.
     (Required) `id` - The ID of the firewall rule group.
     (Required) `priority` - The setting that determines the processing order of the rule group among the rule groups that you associate with the target. DNS Firewall filters VPC traffic starting from the rule group with the lowest numeric priority setting.
     (Required) `name` - A name that lets you identify the association, to manage and use it.
@@ -56,7 +56,7 @@ variable "rule_groups" {
         rule_group.priority < 9900
       ])
     ])
-    error_message = "Not valid parameters for `rule_groups`."
+    error_message = "Valid value for `rule_group.priority` from `rule_groups` is greater than 100 and less than 9900."
   }
 }
 
